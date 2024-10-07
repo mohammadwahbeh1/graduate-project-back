@@ -3,7 +3,7 @@ const Router = express.Router();
 const reviewsController = require('../controllers/reviewsController');
 
 
-Router.route('/').get();
+//Router.route('/').get();
 
 
 
