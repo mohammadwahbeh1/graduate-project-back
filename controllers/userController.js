@@ -15,3 +15,23 @@ module.exports.getAllUsers = async (req, res) => {
         });
     }
 };
+
+module.exports.getAuser = async (req, res) => {
+    try {
+        const user = await User.findOne({
+            where: {
+                user_id: req.params.id,
+            }
+        });
+        res.status(200).json({
+            status: 'success',
+        
+            data: user
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err.message
+        });
+    }
+};

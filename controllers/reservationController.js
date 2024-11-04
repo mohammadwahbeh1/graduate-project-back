@@ -5,14 +5,17 @@ const User = require('../models/User');
 module.exports.createReservation = async (req, res) => {
 
     try {
-        const { description } = req.body;
+        const { start_destination, end_destination, reservation_type, phone_number } = req.body;
         const user_id = req.user.id; 
 
         const newReservation = await Reservation.create({
             user_id,
-            description,
+            start_destination,
+            end_destination,
+            reservation_type,
+            phone_number,
             status: 'pending',
-            last_update: new Date()
+            created_at: new Date()
         });
 
         res.status(201).json({
@@ -98,6 +101,24 @@ module.exports.deleteReservation = async (req, res) => {
             message: `Error deleting reservation: ${error.message}`
         });
     
+}
+}
+module.exports.getAllReservationsForUser=async(req,res)=>{
+    try {
+        const reservations = await Reservation.findAll({
+            where: {
+                user_id: req.params.id
+            }
+        });
+        res.status(200).json({
+            status:'success',
+            data: reservations
+        });
+}catch(err){
+    res.status(400).json({
+        status: 'error',
+        message: `Error getting reservations: ${error.message}`
+    });
 }
 }
 

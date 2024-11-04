@@ -4,10 +4,10 @@ const bcrypt = require('bcrypt');
 const { generateToken } = require('../utils/jwt');
 module.exports.register = async (req, res) => {
     try {
-        const { username, email, password_hash, phone_number, role } = req.body;
+        const { username, email, password, phone_number, role } = req.body;
 
         
-        const hashedPassword = await bcrypt.hash(password_hash, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
         
         const newUser = await User.create({ 
             username, 
@@ -27,11 +27,11 @@ module.exports.register = async (req, res) => {
 
 module.exports.login = async (req, res) => {
     try {
-        const { email, password_hash } = req.body;
+        const { email, password } = req.body;
         const user = await User.findOne({ where: { email } });
         //const hashedPassword = await bcrypt.hash(password_hash, 10);
 
-        if (!user || !(await user.validPassword(password_hash))) {
+        if (!user || !(await user.validPassword(password))) {
             return res.status(401).json({ status: 'error', message: 'Invalid email or password' });
         }
 

@@ -13,18 +13,33 @@ const Reservation = sequelize.define('Reservation', {
         references: {
             model: User,
             key: 'user_id'
-        }
+        },
+        allowNull: false
     },
     driver_id: {
         type: DataTypes.INTEGER,
         references: {
             model: User,
             key: 'user_id'
-        }
+        },
+        allowNull: true 
     },
-    description: {
+    start_destination: {
         type: DataTypes.TEXT,
+        allowNull: false 
+    },
+    end_destination: {
+        type: DataTypes.TEXT,
+        allowNull: false 
+    },
+    reservation_type: {
+        type: DataTypes.ENUM('single', 'family'),
         allowNull: false
+    },
+    
+    phone_number: {
+        type: DataTypes.STRING,
+        allowNull: false 
     },
     status: {
         type: DataTypes.ENUM('Pending', 'Confirmed', 'Cancelled'),

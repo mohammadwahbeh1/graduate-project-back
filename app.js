@@ -1,5 +1,4 @@
 // app.js
-
 const express = require('express');
 const app = express();
 const userRouter = require('./routes/userRouter');
@@ -15,6 +14,7 @@ const adminRouter = require('./routes/adminRouter');
 
 
 app.use(express.json());
+
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/terminals', terminalRouter);

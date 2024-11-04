@@ -9,5 +9,8 @@ Router.route('/:id')
 .get(authenticate,reservationController.getReservationById)
 .patch(authenticate,reservationController.updateReservation)
 .delete( authenticate,reservationController.deleteReservation);
+Router.route('/user/:id')
+.get(authenticate,reservationController.getAllReservationsForUser);
+
 module.exports =Router;
 

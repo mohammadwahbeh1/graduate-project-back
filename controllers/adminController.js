@@ -97,7 +97,7 @@ module.exports.updateAUser= async (req, res) => {
 module.exports.updateLine = async (req, res) => {
     try {
         const { id } = req.params;
-        const { terminal_id, line_manger_id } = req.body; // Adjust fields as needed
+        const { terminal_id, line_manger_id } = req.body; 
 
         const [updated] = await Line.update(
             { terminal_id, line_manger_id },
