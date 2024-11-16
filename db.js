@@ -1,7 +1,7 @@
 const { Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize('Naqalati', 'admin', '903911865+', {
-    host: 'aws-abbas.c5osoi48c22a.eu-north-1.rds.amazonaws.com',
+const sequelize = new Sequelize('Naqalati', 'admin', 'Mode#2002', {
+    host: 'naqalati.cxec8m8wuka0.eu-north-1.rds.amazonaws.com',
     dialect: 'mysql',
     port: 3306
 });
