@@ -4,8 +4,12 @@ const { Op } = require('sequelize');
 
 const reviewsController = {
     async addReview(req, res) {
+        const  user_id = req.user.id;
         try {
-            const { terminal_id, user_id, comment, rating } = req.body;
+
+            const { terminal_id,  comment, rating } = req.body;
+
+
 
             if (!terminal_id || !user_id || !comment || !rating) {
                 return res.status(400).json({ message: 'All fields are required' });
