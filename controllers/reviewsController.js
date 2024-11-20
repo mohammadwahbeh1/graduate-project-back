@@ -72,7 +72,7 @@ const reviewsController = {
 
             const review = await Reviews.findByPk(reviewId);
             if (!review) {
-                return res.status(404).json({ message: 'Review not found' }); // إذا لم يتم العثور على المراجعة
+                return res.status(404).json({ message: 'Review not found' }); 
             }
 
 
@@ -83,9 +83,9 @@ const reviewsController = {
 
             await review.save();
 
-            res.json({ message: 'Review updated successfully', review }); // إرسال رد نجاح
+            res.json({ message: 'Review updated successfully', review }); 
         } catch (error) {
-            res.status(500).json({ message: error.message }); // معالجة الأخطاء
+            res.status(500).json({ message: error.message }); 
         }
     }
     ,

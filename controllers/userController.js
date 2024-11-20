@@ -20,7 +20,7 @@ module.exports.getAuser = async (req, res) => {
     try {
         const user = await User.findOne({
             where: {
-                user_id: req.params.id,
+                user_id: req.user.id,
             }
         });
         res.status(200).json({
