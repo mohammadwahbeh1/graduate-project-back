@@ -1,12 +1,15 @@
 const express = require('express');
 const Router = express.Router();
 const userController = require('../controllers/userController');
+const authenticate = require('../middleware/protectRoutes');
+
+
+Router.route('/profile')
+.get(authenticate,userController.getAuser);
 
 Router.route('/')
-    .get(userController.getAllUsers);
+    .get(authenticate,userController.getAllUsers);
 
-    Router.route('/:id')
-    .get(userController.getAuser);
 
 
 

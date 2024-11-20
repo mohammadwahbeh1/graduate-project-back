@@ -36,16 +36,18 @@ const User = sequelize.define(
     {
         tableName: 'Users',
         timestamps: false,
-        hooks: {
-            beforeCreate: async (user) => {
-                user.password_hash = await bcrypt.hash(user.password_hash, 10);
-            },
-        },
+      
     }
 );
 
 User.prototype.validPassword = async function (password) {
-    return await bcrypt.compare(password, this.password_hash);
+    console.log('Provided password:', password);
+    console.log('Stored hash:', this.password_hash);
+    
+    const result = await bcrypt.compare(password, this.password_hash);
+    console.log('Comparison result:', result);
+    
+    return result;
 };
 
 User.hasMany(Reviews, { foreignKey: 'user_id' });

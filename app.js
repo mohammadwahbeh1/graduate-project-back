@@ -11,6 +11,7 @@ const reviewsRouter= require('./routes/ReviewsRouter');
 const loginRouter= require('./routes/loginRouter');
 const registerRouter= require('./routes/signUpRouter');
 const adminRouter = require('./routes/adminRouter'); 
+const notificationsRouter=require('./routes/notificationsRouter');
 
 
 app.use(express.json());
@@ -26,6 +27,10 @@ app.use('/api/v1/reviews', reviewsRouter);
 app.use('/api/v1/register', registerRouter);
 app.use('/api/v1/login', loginRouter);
 app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/notifications', notificationsRouter);
+
+
+
 
 
 

@@ -28,7 +28,11 @@ module.exports.register = async (req, res) => {
 module.exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ where: { email } });
+        console.log(req.body);
+        const user = await User.findOne({ where: { email } },
+            
+        );
+        console.log(user);
         //const hashedPassword = await bcrypt.hash(password_hash, 10);
 
         if (!user || !(await user.validPassword(password))) {
