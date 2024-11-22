@@ -35,5 +35,6 @@ const Vehicle = sequelize.define('Vehicle', {
     tableName: 'Vehicles',
     timestamps: false
 });
+Vehicle.belongsTo(Line, { foreignKey: 'line_id', as: 'line' });
 
 module.exports = Vehicle;

@@ -4,30 +4,30 @@ const { Op } = require('sequelize');
 
 const reviewsController = {
     async addReview(req, res) {
-        const  user_id = req.user.id;
+        const user_id = req.user.id;
         try {
-
-            const { terminal_id,  comment, rating } = req.body;
-
-
+            const { terminal_id, comment, rating } = req.body;
 
             if (!terminal_id || !user_id || !comment || !rating) {
                 return res.status(400).json({ message: 'All fields are required' });
             }
+
+            const created_at = new Date().toISOString().split('T')[0];
 
             const review = await Reviews.create({
                 terminal_id,
                 user_id,
                 comment,
                 rating,
+                created_at,
             });
 
             res.status(201).json(review);
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
-    },
-
+    }
+,
     async getTerminalReviews(req, res) {
         try {
             const { terminalId } = req.params;
@@ -79,7 +79,8 @@ const reviewsController = {
 
             review.comment = comment || review.comment;
             review.rating = rating || review.rating;
-            review.created_at = new Date();
+            review.created_at = new Date().toISOString().split('T')[0];
+
 
 
             await review.save();

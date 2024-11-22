@@ -6,7 +6,7 @@ module.exports.createReservation = async (req, res) => {
 
     try {
         const { start_destination, end_destination, reservation_type, phone_number } = req.body;
-        const user_id = req.user.id; 
+        const user_id = req.user.id;
 
         const newReservation = await Reservation.create({
             user_id,
@@ -30,7 +30,7 @@ module.exports.createReservation = async (req, res) => {
     }
 
 
-} 
+}
 
 module.exports.getReservationById = async (req, res) => {
 try {
@@ -39,13 +39,13 @@ try {
             reservation_id: req.params.id
         }
     });
-    
+
     res.status(200).json({
         status:'success',
         data: reservation
     });
 } catch (error) {
-    
+
     res.status(400).json({
         status: 'error',
         message: `Error getting reservation: ${error.message}`
@@ -57,24 +57,24 @@ module.exports.updateReservation = async (req, res) => {
 
     try {
         const updateReservation = await Reservation.update({
-            
+
             description: req.body.description,
             last_update: new Date()
         },
         {
             where: {
-                reservation_id: req.params.id 
+                reservation_id: req.params.id
             }
-        
+
         });
-        
+
         res.status(200).json({
             status:'success',
             message: 'Reservation updated successfully',
             data: updateReservation
         });
     } catch (error) {
-        
+
         res.status(400).json({
             status: 'error',
             message: `Error updating reservation: ${error.message}`
@@ -94,13 +94,13 @@ module.exports.deleteReservation = async (req, res) => {
             status:'success',
             message: 'Reservation deleted successfully'
         });
-        
+
     } catch (error) {
         res.status(400).json({
             status: 'error',
             message: `Error deleting reservation: ${error.message}`
         });
-    
+
 }
 }
 module.exports.getAllReservationsForUser=async(req,res)=>{
@@ -223,3 +223,57 @@ module.exports.cancelReservation = async (req, res) => {
 
 
 
+
+
+module.exports.getAllReservationsByDriver = async (req, res) => {
+    try {
+        const driverId = req.user.id;
+
+        const driverReservations = await Reservation.findAll({
+            where: {
+                driver_id: driverId
+            },
+            include: [
+                {
+                    model: User,
+                    attributes: ['username'], }
+            ]
+        });
+
+        res.status(200).json({
+            status: 'success',
+            data: driverReservations
+        });
+    } catch (error) {
+        res.status(400).json({
+            status: 'error',
+            message: `Error getting driver reservations: ${error.message}`
+        });
+    }
+};
+
+module.exports.getPendingReservations = async (req, res) => {
+    try {
+        const pendingReservations = await Reservation.findAll({
+            where: {
+                status: 'pending',
+            },
+            include: [
+                {
+                    model: User,
+                    attributes: ['username'], }
+            ]
+        });
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Pending reservations retrieved successfully',
+            data: pendingReservations
+        });
+    } catch (error) {
+        res.status(400).json({
+            status: 'error',
+            message: `Error fetching pending reservations: ${error.message}`
+        });
+    }
+};
