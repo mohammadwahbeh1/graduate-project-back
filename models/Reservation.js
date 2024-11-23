@@ -53,5 +53,6 @@ const Reservation = sequelize.define('Reservation', {
     tableName: 'Reservations',
     timestamps: false
 });
-
+Reservation.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(Reservation, { foreignKey: 'user_id' });
 module.exports = Reservation;

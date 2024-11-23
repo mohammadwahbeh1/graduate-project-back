@@ -40,4 +40,6 @@ const Line = sequelize.define('Line', {
     timestamps: false
 });
 
+Line.belongsTo(User, { foreignKey: 'line_manager_id', as: 'lineManager' });
+
 module.exports = Line;
