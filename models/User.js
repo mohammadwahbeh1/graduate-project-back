@@ -32,14 +32,26 @@ const User = sequelize.define(
             type: DataTypes.ENUM('user', 'driver', 'line_manager', 'admin'),
             allowNull: false,
         },
+        date_of_birth: {
+            type: DataTypes.DATE,  
+            allowNull: false, 
+        },
+        gender: {
+            type: DataTypes.ENUM('Male', 'Female', 'Other'),  
+            allowNull: false, 
+        },
+        address: {
+            type: DataTypes.STRING,
+            allowNull: false, 
+        },
     },
     {
         tableName: 'Users',
-        timestamps: false,
-      
+        timestamps: false,  
     }
 );
 
+// Password validation
 User.prototype.validPassword = async function (password) {
     console.log('Provided password:', password);
     console.log('Stored hash:', this.password_hash);
@@ -50,6 +62,7 @@ User.prototype.validPassword = async function (password) {
     return result;
 };
 
+// Associations
 User.hasMany(Reviews, { foreignKey: 'user_id' });
 Reviews.belongsTo(User, { foreignKey: 'user_id' });
 
