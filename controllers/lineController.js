@@ -1,8 +1,13 @@
 //lineController.js
 const Line=require('../models/Line');
 const Vehicle = require('../models/Vehicle');
+const { Op } = require('sequelize');
+
+
 
 const User = require('../models/User');
+const  sequelize  = require('../db')
+
 
 const getLineManagerByDriver = async (req, res) => {
     try {
@@ -49,6 +54,39 @@ const getLineManagerByDriver = async (req, res) => {
     }
 };
 
-module.exports = { getLineManagerByDriver };
+const getDriversByLineManager = async (req, res) => {
+    const lineManagerId = req.user.id;
+
+    try {
+        // Fetch vehicles that are managed by the specified line_manager
+        const vehicles = await Vehicle.findAll({
+            where: {
+                line_manager_id: lineManagerId
+            },
+            include: [{
+                model: User,
+                as: 'driver', // Use the 'driver' alias defined earlier
+                attributes: ['user_id', 'username',  'phone_number']
+            }]
+        });
+
+        // Collect drivers from the vehicles
+        const drivers = vehicles.map(vehicle => vehicle.driver);
+
+        if (drivers.length === 0) {
+            return res.status(404).json({ error: 'No drivers found for this line manager' });
+        }
+
+        res.json({ drivers });
+    } catch (error) {
+        console.error('Error fetching drivers:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+module.exports = { getLineManagerByDriver, getDriversByLineManager };
+
+
 
 
