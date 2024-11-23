@@ -32,6 +32,54 @@
             "description": "Unauthorized"
           }
         }
+      },
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "phone_number": {
+                  "example": "any"
+                },
+                "date_of_birth": {
+                  "example": "any"
+                },
+                "gender": {
+                  "example": "any"
+                },
+                "address": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
       }
     },
     "/api/v1/users/": {
@@ -519,6 +567,15 @@
                   "example": "any"
                 },
                 "role": {
+                  "example": "any"
+                },
+                "date_of_birth": {
+                  "example": "any"
+                },
+                "gender": {
+                  "example": "any"
+                },
+                "address": {
                   "example": "any"
                 }
               }

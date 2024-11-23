@@ -4,8 +4,13 @@ const userController = require('../controllers/userController');
 const authenticate = require('../middleware/protectRoutes');
 
 
+
+
 Router.route('/profile')
-.get(authenticate,userController.getAuser);
+.get(authenticate,userController.getAuser)
+.patch(authenticate, userController.updateProfile);
+
+
 
 Router.route('/')
     .get(authenticate,userController.getAllUsers);
