@@ -66,4 +66,5 @@ User.prototype.validPassword = async function (password) {
 User.hasMany(Reviews, { foreignKey: 'user_id' });
 Reviews.belongsTo(User, { foreignKey: 'user_id' });
 
+
 module.exports = User;

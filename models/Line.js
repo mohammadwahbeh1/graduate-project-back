@@ -52,4 +52,7 @@ const Line = sequelize.define('Line', {
 
 Line.belongsTo(User, { foreignKey: 'line_manager_id', as: 'lineManager' });
 
+Line.belongsTo(Terminal, { foreignKey: 'terminal_id', as: 'terminal' });
+
+
 module.exports = Line;

@@ -15,6 +15,9 @@ router.get('/vehicles', authenticate, authorize(['admin']), adminController.getA
 router.patch('/user/:id', authenticate, authorize(['admin']), adminController.updateAUser);
 router.patch('/lines/:id', authenticate, authorize(['admin']), adminController.updateLine);
 
+router.get('/line/manger', authenticate, authorize(['admin']) ,adminController.getLinesAndManagers);
+router.get('/ine/driver', authenticate, authorize(['admin']) ,adminController.getDriversAndLines);
+
 
 
 
