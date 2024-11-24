@@ -4,7 +4,7 @@ const Vehicle = require('../models/Vehicle');
 
 const User = require('../models/User');
 
-const getLineManagerByDriver = async (req, res) => {
+module.exports.getLineManagerByDriver = async (req, res) => {
     try {
         const driverId  = req.user.id;
 
@@ -49,6 +49,37 @@ const getLineManagerByDriver = async (req, res) => {
     }
 };
 
-module.exports = { getLineManagerByDriver };
+
+
+module.exports.getLineLocation = async(req, res)=>{
+    try {
+        const { lineName } = req.query; 
+
+        if (!lineName) {
+            return res.status(400).json({ error: 'Line name is required' });
+        }
+
+        
+        const line = await Line.findOne({
+            where: { line_name: lineName }, 
+            attributes: ['lat', 'long'],
+        });
+
+        if (!line) {
+            return res.status(404).json({ error: 'Line not found' });
+        }
+
+       
+        return res.status(200).json({
+            lineName,
+            latitude: line.lat,
+            longitude: line.long,
+        });
+    } catch (error) {
+        console.error('Error fetching line location:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 
 
