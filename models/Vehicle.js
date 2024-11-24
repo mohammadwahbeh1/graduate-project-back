@@ -49,4 +49,6 @@ Vehicle.belongsTo(Line, { foreignKey: 'line_id', as: 'line' });
 Vehicle.belongsTo(User, { foreignKey: 'line_manager_id', as: 'line_manager' }); // Adding the relationship with Users for line_manager_id
 Vehicle.belongsTo(User, { foreignKey: 'driver_id', as: 'driver' });
 
+
+
 module.exports = Vehicle;

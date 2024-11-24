@@ -32,4 +32,6 @@ const Terminal = sequelize.define('Terminal', {
     timestamps: false
 });
 
+Terminal.belongsTo(User, { foreignKey: 'user_id', as: 'manager' });
+
 module.exports = Terminal;
