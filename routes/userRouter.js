@@ -15,6 +15,11 @@ Router.route('/profile')
 Router.route('/')
     .get(authenticate,userController.getAllUsers);
 
+Router.route('/update-role')
+    .patch(authenticate, userController.updateUserRole);
+
+
+
 
 
 

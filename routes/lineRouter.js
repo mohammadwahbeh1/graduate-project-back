@@ -9,5 +9,8 @@ const authenticate=require('../middleware/protectRoutes');
 
 router.get('/drivers/line-manager',authenticate, lineController.getLineManagerByDriver);
 router.get('/line-manager/drivers',authenticate, lineController.getDriversByLineManager);
+router.get('/term/line',authenticate, lineController.getLinesByTerminalManager);
+
+
 
 module.exports = router;
