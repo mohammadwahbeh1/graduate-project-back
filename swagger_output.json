@@ -249,7 +249,6 @@
         }
       }
     },
-
     "/api/v1/line/drivers/line-manager": {
       "get": {
         "description": "",
@@ -279,7 +278,6 @@
         }
       }
     },
-
     "/api/v1/line/line-manager/drivers": {
       "get": {
         "description": "",
@@ -309,7 +307,6 @@
         }
       }
     },
-
     "/api/v1/reservation/": {
       "post": {
         "description": "",

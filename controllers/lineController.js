@@ -88,7 +88,7 @@ module.exports.getLineLocation = async(req, res)=>{
 };
 
 
-const getDriversByLineManager = async (req, res) => {
+module.exports.getDriversByLineManager = async (req, res) => {
     const lineManagerId = req.user.id;
 
     try {
@@ -119,9 +119,9 @@ const getDriversByLineManager = async (req, res) => {
 };
 
 
-module.exports = { getLineManagerByDriver, getDriversByLineManager };
 
 
->>>>>>> fb0259cc49869e302eb08cee10937924f7188ef4
+
+
 
 
