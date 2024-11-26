@@ -2,6 +2,7 @@
 const Line=require('../models/Line');
 const Vehicle = require('../models/Vehicle');
 const { Op } = require('sequelize');
+const  Terminal= require("../models/Terminal")
 
 
 
@@ -118,9 +119,52 @@ module.exports.getDriversByLineManager = async (req, res) => {
     }
 };
 
+const getLinesByTerminalManager = async (req, res) => {
+    try {
+        const managerId = req.user.id; // Correctly assign managerId
+
+
+        const terminal = await Terminal.findOne({
+            where: { user_id: managerId }, // Fetch terminal by user_id
+        });
+
+        if (!terminal) {
+            return res.status(404).json({
+                success: false,
+                message: 'No terminal found for this manager.',
+            });
+        }
+
+        const lines = await Line.findAll({
+            where: { terminal_id: terminal.terminal_id },
+            attributes: ['line_id', 'line_name', 'current_vehicles_count'],
+        });
+
+        if (!lines.length) {
+            return res.status(404).json({
+                success: false,
+                message: 'No lines found for this terminal.',
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            terminal_id: terminal.terminal_id,
+            terminal_name: terminal.terminal_name,
+            data: lines,
+        });
+    } catch (error) {
+        console.error('Error fetching lines for terminal manager:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching lines for terminal manager.',
+        });
+    }
+};
 
 
 
+module.exports = { getLineManagerByDriver, getDriversByLineManager ,getLinesByTerminalManager };
 
 
 
