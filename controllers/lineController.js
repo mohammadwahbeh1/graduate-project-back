@@ -119,7 +119,7 @@ module.exports.getDriversByLineManager = async (req, res) => {
     }
 };
 
-const getLinesByTerminalManager = async (req, res) => {
+module.exports.getLinesByTerminalManager = async (req, res) => {
     try {
         const managerId = req.user.id; // Correctly assign managerId
 
@@ -164,7 +164,7 @@ const getLinesByTerminalManager = async (req, res) => {
 
 
 
-module.exports = { getLineManagerByDriver, getDriversByLineManager ,getLinesByTerminalManager };
+
 
 
 
