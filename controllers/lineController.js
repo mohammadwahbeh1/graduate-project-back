@@ -10,7 +10,7 @@ const User = require('../models/User');
 const  sequelize  = require('../db')
 
 
-const getLineManagerByDriver = async (req, res) => {
+module.exports.getLineManagerByDriver = async (req, res) => {
     try {
         const driverId  = req.user.id;
 
@@ -55,7 +55,41 @@ const getLineManagerByDriver = async (req, res) => {
     }
 };
 
-const getDriversByLineManager = async (req, res) => {
+
+
+
+module.exports.getLineLocation = async(req, res)=>{
+    try {
+        const { lineName } = req.query; 
+
+        if (!lineName) {
+            return res.status(400).json({ error: 'Line name is required' });
+        }
+
+        
+        const line = await Line.findOne({
+            where: { line_name: lineName }, 
+            attributes: ['lat', 'long'],
+        });
+
+        if (!line) {
+            return res.status(404).json({ error: 'Line not found' });
+        }
+
+       
+        return res.status(200).json({
+            lineName,
+            latitude: line.lat,
+            longitude: line.long,
+        });
+    } catch (error) {
+        console.error('Error fetching line location:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+module.exports.getDriversByLineManager = async (req, res) => {
     const lineManagerId = req.user.id;
 
     try {
@@ -85,9 +119,10 @@ const getDriversByLineManager = async (req, res) => {
     }
 };
 
-const getLinesByTerminalManager = async (req, res) => {
+module.exports.getLinesByTerminalManager = async (req, res) => {
     try {
         const managerId = req.user.id; // Correctly assign managerId
+
 
         const terminal = await Terminal.findOne({
             where: { user_id: managerId }, // Fetch terminal by user_id
@@ -129,7 +164,7 @@ const getLinesByTerminalManager = async (req, res) => {
 
 
 
-module.exports = { getLineManagerByDriver, getDriversByLineManager ,getLinesByTerminalManager };
+
 
 
 

@@ -44,6 +44,10 @@ const User = sequelize.define(
             type: DataTypes.STRING,
             allowNull: false, 
         },
+        license_number:{
+            type: DataTypes.TEXT,
+            allowNull: true,
+        }
     },
     {
         tableName: 'Users',

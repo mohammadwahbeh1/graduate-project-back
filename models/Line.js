@@ -34,7 +34,17 @@ const Line = sequelize.define('Line', {
     last_updated: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
-    }
+    },
+    lat:{
+        type: DataTypes.FLOAT,
+        defaultValue: null
+
+    },
+    long:{
+        type: DataTypes.FLOAT,
+        defaultValue: null
+
+    },
 }, {
     tableName: 'Lines',
     timestamps: false
