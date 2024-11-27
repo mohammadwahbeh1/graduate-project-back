@@ -139,3 +139,58 @@ try {
     
 }
 }
+
+exports.createTerminal = async (req, res) => {
+    try {
+        const { terminal_name, location_center, total_vehicles, user_id } = req.body;
+
+        const newTerminal = await Terminal.create({
+            terminal_name,
+            location_center,
+            total_vehicles,
+            user_id,
+        });
+
+        res.status(201).json({ success: true, data: newTerminal });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Failed to create terminal', error: error.message });
+    }
+};
+
+// Update an existing terminal
+exports.updateTerminal = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        const terminal = await Terminal.findByPk(id);
+        if (!terminal) {
+            return res.status(404).json({ success: false, message: 'Terminal not found' });
+        }
+
+        const updatedTerminal = await terminal.update(updates);
+        res.status(200).json({ success: true, data: updatedTerminal });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Failed to update terminal', error: error.message });
+    }
+};
+
+// Delete a terminal
+exports.deleteTerminal = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const terminal = await Terminal.findByPk(id);
+        if (!terminal) {
+            return res.status(404).json({ success: false, message: 'Terminal not found' });
+        }
+
+        await terminal.destroy();
+        res.status(200).json({ success: true, message: 'Terminal deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Failed to delete terminal', error: error.message });
+    }
+};
