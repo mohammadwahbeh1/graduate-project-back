@@ -137,7 +137,8 @@ module.exports.getLinesByTerminalManager = async (req, res) => {
 
         const lines = await Line.findAll({
             where: { terminal_id: terminal.terminal_id },
-            attributes: ['line_id', 'line_name', 'current_vehicles_count'],
+
+            attributes: ['line_id', 'line_name', 'current_vehicles_count' ,'line_manager_id'],
         });
 
         if (!lines.length) {
