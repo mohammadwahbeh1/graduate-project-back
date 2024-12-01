@@ -17,7 +17,7 @@ Router
 
 
 Router
-.route('/manager').get(authenticate,terminalController.getAllTerminalsManager);
+.route('/manager/all').get(authenticate,terminalController.getAllTerminalsManager);
 
 
 Router

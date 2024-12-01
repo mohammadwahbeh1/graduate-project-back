@@ -23,22 +23,27 @@ const Vehicle = sequelize.define('Vehicle', {
             key: 'line_id'
         }
     },
-    line_manager_id: { // Adding the line_manager_id field
+    line_manager_id: {
         type: DataTypes.INTEGER,
         references: {
             model: User,
             key: 'user_id'
         },
-        allowNull: true // Allowing it to be NULL
+        allowNull: true
     },
     current_status: {
         type: DataTypes.ENUM('on_the_way', 'in_terminal'),
         defaultValue: 'in_terminal'
     },
-    current_location: {
-        type: DataTypes.GEOMETRY('POINT'),
-        allowNull: true
-    }
+    latitude: {
+        type: DataTypes.FLOAT,
+        allowNull: true // Allowing null in case location is not set
+    },
+    longitude: {
+        type: DataTypes.FLOAT,
+        allowNull: true // Allowing null in case location is not set
+    },
+
 }, {
     tableName: 'Vehicles',
     timestamps: false
@@ -46,9 +51,7 @@ const Vehicle = sequelize.define('Vehicle', {
 
 // Defining relationships
 Vehicle.belongsTo(Line, { foreignKey: 'line_id', as: 'line' });
-Vehicle.belongsTo(User, { foreignKey: 'line_manager_id', as: 'line_manager' }); // Adding the relationship with Users for line_manager_id
+Vehicle.belongsTo(User, { foreignKey: 'line_manager_id', as: 'line_manager' });
 Vehicle.belongsTo(User, { foreignKey: 'driver_id', as: 'driver' });
-
-
 
 module.exports = Vehicle;
