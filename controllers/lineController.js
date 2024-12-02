@@ -137,7 +137,8 @@ module.exports.getLinesByTerminalManager = async (req, res) => {
 
         const lines = await Line.findAll({
             where: { terminal_id: terminal.terminal_id },
-            attributes: ['line_id', 'line_name', 'current_vehicles_count'],
+
+            attributes: ['line_id', 'line_name', 'current_vehicles_count' ,'line_manager_id'],
         });
 
         if (!lines.length) {
@@ -165,6 +166,84 @@ module.exports.getLinesByTerminalManager = async (req, res) => {
 
 
 
+
+exports.createLine = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const {line_manager_id ,line_name, lat, long } = req.body;
+
+        const terminal = await Terminal.findOne({ where: { user_id: userId } });
+        if (!terminal) {
+            return res.status(404).json({ message: 'Terminal not found for this user.' });
+        }
+
+        const newLine = await Line.create({
+            terminal_id: terminal.terminal_id,
+            line_name,
+            lat,
+            long,
+            line_manager_id: line_manager_id,
+        });
+
+        return res.status(201).json(newLine);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to create line.', error });
+    }
+};
+
+exports.updateLine = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { line_id } = req.params;
+        const { line_manager_id,line_name, lat, long } = req.body;
+
+        const terminal = await Terminal.findOne({ where: { user_id: userId } });
+        if (!terminal) {
+            return res.status(404).json({ message: 'Terminal not found for this user.' });
+        }
+
+        const line = await Line.findOne({
+            where: { line_id, terminal_id: terminal.terminal_id },
+        });
+        if (!line) {
+            return res.status(404).json({ message: 'Line not found or not linked to this terminal.' });
+        }
+
+        await line.update({ line_manager_id ,line_name, lat, long });
+
+        return res.status(200).json(line);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to update line.', error });
+    }
+};
+
+exports.deleteLine = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { line_id } = req.params;
+
+        const terminal = await Terminal.findOne({ where: { user_id: userId } });
+        if (!terminal) {
+            return res.status(404).json({ message: 'Terminal not found for this user.' });
+        }
+
+        const line = await Line.findOne({
+            where: { line_id, terminal_id: terminal.terminal_id },
+        });
+        if (!line) {
+            return res.status(404).json({ message: 'Line not found or not linked to this terminal.' });
+        }
+
+        await line.destroy();
+
+        return res.status(200).json({ message: 'Line deleted successfully.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to delete line.', error });
+    }
+};
 
 
 

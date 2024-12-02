@@ -22,6 +22,21 @@ module.exports.getAllDrivers = async (req, res) => {
         });
     }
 };
+module.exports.getAllAdmin = async (req, res) => {
+    try {
+        const admin = await User.findAll({ where: { role: 'admin' } });
+        res.status(200).json({
+            status: 'success',
+            data: admin
+        });
+    } catch (error) {
+        res.status(400).json({
+            status: 'error',
+            message: `Error fetching drivers: ${error.message}`
+        });
+    }
+};
+
 
 module.exports.getAllLineManagers = async (req, res) => {
     try {

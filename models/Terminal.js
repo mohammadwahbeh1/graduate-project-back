@@ -12,7 +12,10 @@ const Terminal = sequelize.define('Terminal', {
         type: DataTypes.STRING,
         allowNull: false
     },
-  
+    location_center: {
+        type: DataTypes.GEOMETRY('POINT'),
+        allowNull: true
+    },
     total_vehicles: {
         type: DataTypes.INTEGER,
         defaultValue: 0
