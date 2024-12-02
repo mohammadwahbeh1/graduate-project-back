@@ -84,3 +84,27 @@ module.exports.markNotificationAsRead = async (req, res) => {
         });
     }
 };
+module.exports.addNotificationsFromDriver=async (req,res)=>{
+
+    try {
+        const user_id = req.params.id; 
+        const {message}=req.body;
+        
+        const notification = await Notification.create({
+            user_id: user_id,
+            message: message,
+
+        });
+        res.status(200).json({
+            status:'success',
+            message: 'Notification created successfully'
+        });
+    } catch (error) {
+        res.status(400).json({
+            status: 'error',
+            message: `Error creating notification: ${error.message}`
+        });
+        
+    }
+};
+

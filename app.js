@@ -12,9 +12,11 @@ const loginRouter= require('./routes/loginRouter');
 const registerRouter= require('./routes/signUpRouter');
 const adminRouter = require('./routes/adminRouter'); 
 const notificationsRouter=require('./routes/notificationsRouter');
+const cors = require('cors');
 
 
 app.use(express.json());
+app.use(cors());
 
 
 app.use('/api/v1/users', userRouter);

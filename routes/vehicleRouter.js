@@ -7,6 +7,7 @@ const authenticate=require('../middleware/protectRoutes');
 
 
 router.post('/',authenticate, vehicleController.createVehicle);
+router.patch('/update-location', authenticate, vehicleController.updateVehicleLocation);
 
 
 module.exports = router;
