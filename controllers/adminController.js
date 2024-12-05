@@ -2,6 +2,9 @@
 const User = require('../models/User'); 
 const Terminal = require('../models/Terminal');
 const Vehicle = require('../models/Vehicle');
+const Reviews = require('../models/Reviews');
+
+const Reservation = require('../models/Reservation');
 
 const Line = require('../models/Line');
 const sequelize = require('../db');
@@ -243,3 +246,167 @@ module.exports.getDriversAndLines = async (req, res) => {
     }
 };
 
+
+module.exports.getUsersStatistics = async (req, res) => {
+    try {
+        const roleDistribution = await User.findAll({
+            attributes: ['role', [sequelize.fn('COUNT', sequelize.col('role')), 'count']],
+            group: ['role']
+        });
+
+        const genderDistribution = await User.findAll({
+            attributes: ['gender', [sequelize.fn('COUNT', sequelize.col('gender')), 'count']],
+            group: ['gender']
+        });
+
+        // Age group calculation
+        const [ageGroups] = await sequelize.query(`
+            SELECT 
+                CASE 
+                    WHEN TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) BETWEEN 18 AND 25 THEN '18-25'
+                    WHEN TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) BETWEEN 26 AND 35 THEN '26-35'
+                    WHEN TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) BETWEEN 36 AND 45 THEN '36-45'
+                    ELSE '46+' 
+                END AS age_group, 
+                COUNT(*) AS count
+            FROM Users
+            GROUP BY age_group;
+        `);
+
+        res.json({ roleDistribution, genderDistribution, ageGroups });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+module.exports.getLinesWithVehicleCount = async (req, res) => {
+    try {
+        const terminalManagerId = req.user.id;
+
+        const results = await sequelize.query(
+            `
+            SELECT 
+                l.line_id,
+                l.line_name,
+                COUNT(v.vehicle_id) AS vehicle_count
+            FROM 
+                \`Lines\` l
+            INNER JOIN 
+                \`Terminals\` t ON l.terminal_id = t.terminal_id
+            LEFT JOIN 
+                \`Vehicles\` v ON l.line_id = v.line_id
+            WHERE 
+                t.user_id = :terminalManagerId
+            GROUP BY 
+                l.line_id, l.line_name;
+            `,
+            {
+                replacements: { terminalManagerId },
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+
+        res.json({ lines: results });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+module.exports.getLineCountByManager = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+
+        const [results] = await sequelize.query(
+            `
+                SELECT t.terminal_name, COUNT(l.line_id) AS line_count
+                FROM \`Terminals\` t
+                         LEFT JOIN \`Lines\` l ON t.terminal_id = l.terminal_id
+                WHERE t.user_id = :userId
+                GROUP BY t.terminal_id
+            `,
+            {
+                replacements: { userId },
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+
+        res.json(results);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+module.exports.getReservationStatistics = async (req, res) => {
+    try {
+        const reservationsByStatus = await Reservation.findAll({
+            attributes: ['status', [sequelize.fn('COUNT', sequelize.col('status')), 'count']],
+            group: ['status']
+        });
+
+        res.json({ reservationsByStatus });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+
+
+module.exports.getReviewStatistics = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const results = await sequelize.query(
+            `
+                SELECT
+                    r.terminal_id,
+                    r.rating,
+                    COUNT(*) AS count,
+                    subquery.average_rating
+                FROM
+                    Reviews r
+                        INNER JOIN
+                    Terminals t ON r.terminal_id = t.terminal_id
+                        INNER JOIN
+                    (
+                        SELECT
+                            terminal_id,
+                            AVG(rating) AS average_rating
+                        FROM
+                            Reviews
+                        GROUP BY
+                            terminal_id
+                    ) AS subquery ON r.terminal_id = subquery.terminal_id
+                WHERE
+                    t.user_id = :userId
+                GROUP BY
+                    r.terminal_id, r.rating;
+            `,
+            {
+                replacements: { userId },
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+
+        // إعادة تشكيل البيانات لتكون مناسبة للعرض
+        const data = {};
+        results.forEach(({ terminal_id, rating, count, average_rating }) => {
+            if (!data[terminal_id]) {
+                data[terminal_id] = {
+                    ratings: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+                    average_rating: parseFloat(average_rating)
+                };
+            }
+            data[terminal_id].ratings[rating] = count;
+        });
+
+        res.json({ terminals: data });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+};
