@@ -5,7 +5,7 @@ const User = require('../models/User');
 module.exports.createReservation = async (req, res) => {
 
     try {
-        const { start_destination, end_destination, reservation_type, phone_number } = req.body;
+        const { start_destination, end_destination, reservation_type, phone_number,description } = req.body;
         const user_id = req.user.id;
 
         const newReservation = await Reservation.create({
@@ -15,7 +15,9 @@ module.exports.createReservation = async (req, res) => {
             reservation_type,
             phone_number,
             status: 'pending',
-            created_at: new Date()
+            created_at: new Date(),
+            description,
+          
         });
 
         res.status(201).json({
@@ -131,14 +133,12 @@ module.exports.acceptReservation = async (req, res) => {
         const driverId = req.user.id;
 
         const reservation = await Reservation.findByPk(reservationId);
-
         if (!reservation) {
             return res.status(404).json({
                 status: 'error',
                 message: 'Reservation not found'
             });
         }
-
 
         if (reservation.status !== 'Pending') {
             return res.status(400).json({
@@ -147,17 +147,14 @@ module.exports.acceptReservation = async (req, res) => {
             });
         }
 
-
         const driver = await User.findByPk(driverId);
-
-
+        console.log(driver);
         if (!driver || driver.role !== 'driver') {
             return res.status(403).json({
                 status: 'error',
                 message: 'Only drivers can accept reservations'
             });
         }
-
 
         if (reservation.driver_id && reservation.driver_id !== driverId) {
             return res.status(400).json({
@@ -166,14 +163,24 @@ module.exports.acceptReservation = async (req, res) => {
             });
         }
 
+       
         reservation.status = 'Confirmed';
         reservation.driver_id = driverId;
         await reservation.save();
 
+        
         res.status(200).json({
             status: 'success',
             message: 'Reservation accepted successfully',
-            data: reservation
+            data: {
+                reservation,
+                driver: {
+                    user_id: driver.user_id,
+                    username: driver.username,
+                    phone_number: driver.phone_number,
+                    email: driver.email
+                }
+            }
         });
     } catch (error) {
         res.status(500).json({
@@ -182,6 +189,7 @@ module.exports.acceptReservation = async (req, res) => {
         });
     }
 };
+
 
 
 module.exports.cancelReservation = async (req, res) => {

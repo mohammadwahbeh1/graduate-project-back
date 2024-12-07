@@ -4,17 +4,17 @@ const router = express.Router();
 const authenticate=require('../middleware/protectRoutes');
 
 
-
-
 router.post('/',authenticate, vehicleController.createVehicle);
 router.get('/', authenticate, vehicleController.getVehiclesByTerminal);
 
 
 router.put('/:id', authenticate, vehicleController.updateVehicle);
+router.patch('/update-location', authenticate, vehicleController.updateVehicleLocation);
 
 router.delete('/:id', authenticate, vehicleController.deleteVehicle);
 
 router.get('/vehicle-stats',authenticate, vehicleController.stit);
+
 
 
 module.exports = router;
