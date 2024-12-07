@@ -12,10 +12,7 @@ const Terminal = sequelize.define('Terminal', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    location_center: {
-        type: DataTypes.GEOMETRY('POINT'),
-        allowNull: true
-    },
+ 
     total_vehicles: {
         type: DataTypes.INTEGER,
         defaultValue: 0
@@ -26,7 +23,15 @@ const Terminal = sequelize.define('Terminal', {
             model: User,
             key: 'user_id'
         }
-    }
+    },
+    latitude: {
+        type: DataTypes.FLOAT,
+        allowNull: true // Allowing null in case location is not set
+    },
+    longitude: {
+        type: DataTypes.FLOAT,
+        allowNull: true // Allowing null in case location is not set
+    },
 }, {
     tableName: 'Terminals',
     timestamps: false

@@ -35,10 +35,21 @@ const Vehicle = sequelize.define('Vehicle', {
         type: DataTypes.ENUM('on_the_way', 'in_terminal'),
         defaultValue: 'in_terminal'
     },
-    current_location: {
-        type: DataTypes.GEOMETRY('POINT'),
-        allowNull: true
+    latitude: {
+        type: DataTypes.FLOAT,
+        allowNull: true // Allowing null in case location is not set
+    },
+    longitude: {
+        type: DataTypes.FLOAT,
+        allowNull: true // Allowing null in case location is not set
+    },
+    previous_location_within_radius: {
+    
+    type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
+
+
 }, {
     tableName: 'Vehicles',
     timestamps: false

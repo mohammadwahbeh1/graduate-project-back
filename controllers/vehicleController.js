@@ -2,6 +2,11 @@ const Vehicle = require('../models/Vehicle');
 const Line = require('../models/Line');
 const User = require('../models/User');
 
+const targetLatitude =32.2149;
+const targetLongitude = 35.2828;
+
+const targetRadius = 1000;  
+
 
 module.exports.createVehicle = async (req, res) => {
     try {
@@ -109,12 +114,13 @@ module.exports.updateVehicleLocation = async (req, res) => {
     });
 
     if (line) {
-      
+      console.log(line);
       const wasInsideRadius = vehicle.previous_location_within_radius;
-
+      console.log("was inside radious :"+wasInsideRadius);
      
       const isInsideRadius = distance <= targetRadius;
 
+      console.log("is inside radious :"+isInsideRadius);
       
       await vehicle.update({
         latitude: latitude,
@@ -128,8 +134,9 @@ module.exports.updateVehicleLocation = async (req, res) => {
         
         await line.increment('current_vehicles_count', { by: 1 });
        
-        
+        console.log('increment');
       } else if (!isInsideRadius && wasInsideRadius) {
+        console.log('decrement');
         
         await line.decrement('current_vehicles_count', { by: 1 });
         
@@ -300,3 +307,42 @@ module.exports.stit = async (req, res) => {
         res.status(500).send('Server error');
     } }
 
+module.exports.getDriversLocation = async (req, res) => {
+    try {
+        const lineManagerId = req.user.id;
+
+        // Fetch all vehicles with their driver info for the line manager
+        const vehicles = await Vehicle.findAll({
+            where: {
+                line_manager_id: lineManagerId,
+                current_status: 'on_the_way', // Only vehicles that are on the way
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'driver',
+                    attributes: ['user_id', 'username', 'phone_number', 'email']
+                }
+            ],
+            attributes: ['vehicle_id', 'latitude', 'longitude']
+        });
+
+        if (vehicles.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'No vehicles found for the line manager'
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Driver locations fetched successfully',
+            data: vehicles
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: `Error fetching driver locations: ${error.message}`
+        });
+    }
+};

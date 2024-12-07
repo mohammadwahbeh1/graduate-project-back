@@ -48,6 +48,10 @@ const Reservation = sequelize.define('Reservation', {
     created_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
+    },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: true
     }
 }, {
     tableName: 'Reservations',

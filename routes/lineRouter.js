@@ -12,6 +12,7 @@ router.get('/drivers/line-manager',authenticate, lineController.getLineManagerBy
 router.get('/line-manager/drivers',authenticate, lineController.getDriversByLineManager);
 router.get('/term/line',authenticate, lineController.getLinesByTerminalManager);
 
+router.get('/drivers/locations', authenticate, lineController.getDriversLocation);
 
 router.post('/create', authenticate, lineController.createLine);
 

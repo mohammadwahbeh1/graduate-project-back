@@ -245,6 +245,44 @@ exports.deleteLine = async (req, res) => {
     }
 };
 
+module.exports.getDriversLocation = async (req, res) => {
+    try {
+        const lineManagerId = req.user.id;
 
+        // Fetch all vehicles with their driver info for the line manager
+        const vehicles = await Vehicle.findAll({
+            where: {
+                line_manager_id: lineManagerId,
+                current_status: 'on_the_way', // Only vehicles that are on the way
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'driver',
+                    attributes: ['user_id', 'username', 'phone_number', 'email']
+                }
+            ],
+            attributes: ['vehicle_id', 'latitude', 'longitude']
+        });
+
+        if (vehicles.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'No vehicles found for the line manager'
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Driver locations fetched successfully',
+            data: vehicles
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: `Error fetching driver locations: ${error.message}`
+        });
+    }
+};
 
 
