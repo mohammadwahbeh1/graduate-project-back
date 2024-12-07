@@ -19,6 +19,11 @@ router.patch('/lines/:id', authenticate, authorize(['admin']), adminController.u
 router.get('/line/manger', authenticate, authorize(['admin']) ,adminController.getLinesAndManagers);
 router.get('/ine/driver', authenticate, authorize(['admin']) ,adminController.getDriversAndLines);
 
+router.get('/users/statistics', authenticate, authorize(['admin']), adminController.getUsersStatistics);
+router.get('/vehicles/statistics', authenticate, authorize(['admin']), adminController.getLinesWithVehicleCount);
+router.get('/lines/statistics', authenticate, authorize(['admin']), adminController.getLineCountByManager);
+router.get('/reservations/statistics', authenticate, authorize(['admin']), adminController.getReservationStatistics);
+router.get('/reviews/statistics', authenticate, authorize(['admin']), adminController.getReviewStatistics);
 
 
 

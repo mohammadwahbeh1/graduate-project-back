@@ -1,6 +1,7 @@
 // controllers/terminalController.js
 
-const { Op } = require('sequelize');
+const { Op } = require('sequelize');  // Use this import
+
 const Line = require('../models/Line');
 const Vehicle = require('../models/Vehicle');
 const Terminal = require('../models/Terminal');
@@ -105,7 +106,7 @@ module.exports.getAllTerminalsManager = async (req, res) => {
 
 exports.createTerminal = async (req, res) => {
     try {
-        const { terminal_name, latitude, longitude, total_vehicles, user_id } = req.body;
+        const { terminal_name, latitude =0.0, longitude=0.0, total_vehicles, user_id } = req.body;
 
         const newTerminal = await Terminal.create({
             terminal_name,
@@ -157,6 +158,23 @@ exports.deleteTerminal = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Terminal not found' });
         }
 
+        // Step 1: Get all the line_ids for lines that are associated with the terminal
+        const lines = await Line.findAll({ where: { terminal_id: id } });
+        const lineIds = lines.map(line => line.line_id);
+
+        // Step 2: Disassociate all vehicles from the lines for the terminal by setting line_id to null
+        await Vehicle.update(
+            { line_id: null }, // Set line_id to null to disassociate vehicles
+            {
+                where: {
+                    line_id: { [Op.in]: lineIds } // Use Op directly here for the 'in' operator
+                }
+            });
+
+        // Step 3: Delete all Lines that reference the terminal
+        await Line.destroy({ where: { terminal_id: id } });
+
+        // Step 4: Now delete the terminal
         await terminal.destroy();
         res.status(200).json({ success: true, message: 'Terminal deleted successfully' });
     } catch (error) {
