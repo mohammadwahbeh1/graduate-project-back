@@ -66,96 +66,60 @@ module.exports.createVehicle = async (req, res) => {
 
 
 
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371000; 
-  const φ1 = lat1 * (Math.PI / 180); 
-  const φ2 = lat2 * (Math.PI / 180); 
-  const Δφ = (lat2 - lat1) * (Math.PI / 180); 
-  const Δλ = (lon2 - lon1) * (Math.PI / 180); 
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) *
-    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+// function haversine(lat1, lon1, lat2, lon2) {
+//   const R = 6371000; 
+//   const φ1 = lat1 * (Math.PI / 180); 
+//   const φ2 = lat2 * (Math.PI / 180); 
+//   const Δφ = (lat2 - lat1) * (Math.PI / 180); 
+//   const Δλ = (lon2 - lon1) * (Math.PI / 180); 
+//   const a =
+//     Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+//     Math.cos(φ1) * Math.cos(φ2) *
+//     Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+//   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  return R * c; 
-}
+//   return R * c; 
+// }
+
+
 
 module.exports.updateVehicleLocation = async (req, res) => {
   try {
+    const { latitude, longitude } = req.body;
+
+    
     const driverId = req.user.id;
-    const { longitude, latitude } = req.body;
 
-    if (!longitude || !latitude) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Longitude and latitude are required.',
-      });
+    if (!latitude || !longitude) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
     }
+    const vehicle = await Vehicle.findOne({ where: { driver_id: driverId } });
+    
+    
+  
+  
 
-    const vehicle = await Vehicle.findOne({
-      where: {
-        driver_id: driverId,
+    
+    vehicle.latitude = latitude;
+    vehicle.longitude = longitude;
+
+    
+    await vehicle.save();
+
+    return res.status(200).json({
+      message: 'Vehicle location updated successfully',
+      vehicle: {
+        vehicle_id: vehicle.vehicle_id,
+        latitude: vehicle.latitude,
+        longitude: vehicle.longitude,
       },
     });
-
-    if (!vehicle) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Vehicle not found for this driver.',
-      });
-    }
-
-  
-    const distance = haversine(latitude, longitude, targetLatitude, targetLongitude);
-
-    const line = await Line.findOne({
-      where: { line_id: vehicle.line_id },
-    });
-
-    if (line) {
-      console.log(line);
-      const wasInsideRadius = vehicle.previous_location_within_radius;
-      console.log("was inside radious :"+wasInsideRadius);
-     
-      const isInsideRadius = distance <= targetRadius;
-
-      console.log("is inside radious :"+isInsideRadius);
-      
-      await vehicle.update({
-        latitude: latitude,
-        longitude: longitude,
-        previous_location_within_radius: isInsideRadius, 
-         current_status: isInsideRadius ? 'in_terminal' : 'on_the_way'
-      });
-
-     
-      if (isInsideRadius && !wasInsideRadius) {
-        
-        await line.increment('current_vehicles_count', { by: 1 });
-       
-        console.log('increment');
-      } else if (!isInsideRadius && wasInsideRadius) {
-        console.log('decrement');
-        
-        await line.decrement('current_vehicles_count', { by: 1 });
-        
-      }
-    }
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Vehicle location updated successfully.',
-      data: vehicle,
-    });
-  } catch (err) {
-    console.error('Error updating vehicle location:', err);
-    res.status(500).json({
-      status: 'error',
-      message: `Error updating vehicle location: ${err.message}`,
-    });
+  } catch (error) {
+    console.error('Error updating vehicle location:', error);
+    return res.status(500).json({ error: 'An error occurred while updating vehicle location' });
   }
 };
+
 
 module.exports.updateVehicle = async (req, res) => {
     try {
@@ -346,3 +310,70 @@ module.exports.getDriversLocation = async (req, res) => {
         });
     }
 };
+
+
+module.exports.incrementVehicleCount = async(req,res)=>{
+
+    try {
+        const driver_id  = req.user.id;  
+        console.log(driver_id);
+    
+        const vehicle = await Vehicle.findOne({
+          where: { driver_id },
+          include: {
+            model: Line,
+            as: 'line', // Including the associated Line
+          },
+        });
+    
+        if (!vehicle || !vehicle.line) {
+          return res.status(404).json({ status: 'error', message: 'Vehicle or line not found' });
+        }
+    
+        
+        await vehicle.line.increment('current_vehicles_count', { by: 1 });
+    
+        
+        res.status(200).json({ status: 'success', message: 'Vehicle count incremented successfully' });
+    
+      } catch (error) {
+        console.error('Error incrementing vehicle count:', error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+      }
+
+
+};
+
+
+module.exports.decrementVehicleCount = async(req,res)=>{
+
+    try {
+        const  driver_id = req.user.id;  
+    
+        
+        const vehicle = await Vehicle.findOne({
+          where: { driver_id },
+          include: {
+            model: Line,
+            as: 'line', 
+          },
+        });
+    
+        if (!vehicle || !vehicle.line) {
+          return res.status(404).json({ status: 'error', message: 'Vehicle or line not found' });
+        }
+    
+        
+        await vehicle.line.decrement('current_vehicles_count', { by: 1 });
+    
+       
+        res.status(200).json({ status: 'success', message: 'Vehicle count decremented successfully' });
+    
+      } catch (error) {
+        console.error('Error decrementing vehicle count:', error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+      }
+
+
+};
+
