@@ -1,9 +1,8 @@
 //lineController.js
-const Line=require('../models/Line');
 const Vehicle = require('../models/Vehicle');
 const { Op } = require('sequelize');
 const  Terminal= require("../models/Terminal")
-
+const Line=require('../models/Line');
 
 
 const User = require('../models/User');
@@ -58,32 +57,28 @@ module.exports.getLineManagerByDriver = async (req, res) => {
 
 
 
-module.exports.getLineLocation = async(req, res)=>{
-    try {
-        const { lineName } = req.query; 
-
-        if (!lineName) {
-            return res.status(400).json({ error: 'Line name is required' });
-        }
-
-        
-        const line = await Line.findOne({
-            where: { line_name: lineName }, 
-            attributes: ['lat', 'long'],
+module.exports.getAllLineLocations = async (req, res) => {
+  try {
+     
+        const lines = await Line.findAll({
+            attributes: ['line_name', 'lat', 'long'], 
         });
 
-        if (!line) {
-            return res.status(404).json({ error: 'Line not found' });
+        // Check if any lines exist
+        if (!lines || lines.length === 0) {            return res.status(404).json({ error: 'No lines found' });
         }
 
-       
-        return res.status(200).json({
-            lineName,
+    
+        const lineLocations = lines.map(line => ({
+            lineName: line.line_name,
             latitude: line.lat,
             longitude: line.long,
-        });
+        }));
+
+      
+        return res.status(200).json(lineLocations);
     } catch (error) {
-        console.error('Error fetching line location:', error);
+        console.error('Error fetching line locations:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -249,11 +244,11 @@ module.exports.getDriversLocation = async (req, res) => {
     try {
         const lineManagerId = req.user.id;
 
-        // Fetch all vehicles with their driver info for the line manager
+        
         const vehicles = await Vehicle.findAll({
             where: {
                 line_manager_id: lineManagerId,
-                current_status: 'on_the_way', // Only vehicles that are on the way
+                current_status: 'on_the_way', 
             },
             include: [
                 {
@@ -286,3 +281,32 @@ module.exports.getDriversLocation = async (req, res) => {
 };
 
 
+module.exports.getLineLocation = async(req, res)=>{
+    try {
+        const { lineName } = req.query; 
+
+        if (!lineName) {
+            return res.status(400).json({ error: 'Line name is required' });
+        }
+
+        
+        const line = await Line.findOne({
+            where: { line_name: lineName }, 
+            attributes: ['lat', 'long'],
+        });
+
+        if (!line) {
+            return res.status(404).json({ error: 'Line not found' });
+        }
+
+       
+        return res.status(200).json({
+            lineName,
+            latitude: line.lat,
+            longitude: line.long,
+        });
+    } catch (error) {
+        console.error('Error fetching line location:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};

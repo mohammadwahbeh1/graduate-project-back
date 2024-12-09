@@ -3,9 +3,14 @@ const express = require('express');
 const router = express.Router();
 const authenticate=require('../middleware/protectRoutes');
 
+router.patch('/increment', authenticate, vehicleController.incrementVehicleCount);
+
+router.patch('/decrement', authenticate, vehicleController.decrementVehicleCount);
 
 router.post('/',authenticate, vehicleController.createVehicle);
 router.get('/', authenticate, vehicleController.getVehiclesByTerminal);
+
+
 
 
 router.put('/:id', authenticate, vehicleController.updateVehicle);

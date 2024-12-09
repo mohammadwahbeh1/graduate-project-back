@@ -4,6 +4,9 @@ const express = require('express');
 const Router = express.Router();
 const terminalController = require('../controllers/terminalController');
 const authenticate=require('../middleware/protectRoutes');
+
+Router.route('/terminal-position').get(authenticate,terminalController.getTerminalPosition);
+
 Router
     .route('/')
     .get(authenticate, terminalController.getAllTerminals) // Existing route
@@ -22,6 +25,8 @@ Router
 
 Router
 .route('/:id/lines').get(authenticate,terminalController.getLinesByTerminal);
+
+
 
 
 

@@ -6,7 +6,9 @@ const authenticate=require('../middleware/protectRoutes');
 
 
 //Router.route('/').get();
+router.route('/all').get(authenticate, lineController.getAllLineLocations);
 router.route('/location').get(authenticate, lineController.getLineLocation);
+
 router.get('/drivers/line-manager',authenticate, lineController.getLineManagerByDriver);
 
 router.get('/line-manager/drivers',authenticate, lineController.getDriversByLineManager);

@@ -25,11 +25,11 @@ const Terminal = sequelize.define('Terminal', {
         }
     },
     latitude: {
-        type: DataTypes.FLOAT,
+        type: DataTypes.DOUBLE,
         allowNull: true // Allowing null in case location is not set
     },
     longitude: {
-        type: DataTypes.FLOAT,
+        type: DataTypes.DOUBLE,
         allowNull: true // Allowing null in case location is not set
     },
 }, {

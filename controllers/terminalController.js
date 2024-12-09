@@ -182,3 +182,51 @@ exports.deleteTerminal = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to delete terminal', error: error.message });
     }
 };
+
+
+
+
+
+module.exports.getTerminalPosition = async (req, res) => {
+  try {
+    // Extract driver ID from the JWT token
+    const driverId = req.user.id; // Assuming you've decoded the JWT and attached `user` to the request
+
+    // Find the vehicle associated with the driver
+    const vehicle = await Vehicle.findOne({
+      where: { driver_id: driverId },
+      include: {
+        model: Line,
+        as: 'line',
+        include: {
+          model: Terminal,
+          as: 'terminal',
+        },
+      },
+    });
+     
+
+    if (!vehicle) {
+      return res.status(404).json({ message: 'Vehicle not found for the driver' });
+    }
+
+    const terminal = vehicle.line.terminal;
+    console.log("the terminal info : " + terminal);
+
+    if (!terminal) {
+      return res.status(404).json({ message: 'Terminal not found for the driver\'s line' });
+    }
+
+    // Return the terminal position
+    res.status(200).json({
+      terminal_id: terminal.terminal_id,
+      terminal_name: terminal.terminal_name,
+      latitude: terminal.latitude,
+      longitude: terminal.longitude,
+    });
+  } catch (error) {
+    console.error('Error fetching terminal position:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
