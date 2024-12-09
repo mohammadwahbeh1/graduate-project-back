@@ -15,10 +15,10 @@ const swaggerDoc = {
     },
     host: 'localhost:3000',
     schemes: ['http'],
-};
+};z
 
-const outputFile = './swagger_output.json'; 
-const endpointsFiles = ['./routes/notificationsRoutes.js']; 
+const outputFile = './swagger_output.json';
+const endpointsFiles = ['./routes/notificationsRoutes.js'];
 
 // Create the HTTP server
 const server = http.createServer(app);
