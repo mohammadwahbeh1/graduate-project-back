@@ -2,9 +2,9 @@ const express = require('express');
 const morgan = require('morgan');
 const swaggerAutogen = require('swagger-autogen')();
 const swaggerUi = require('swagger-ui-express');
-const http = require('http'); 
+const http = require('http');
 const WebSocket = require('ws');
-const app = require('./app'); 
+const app = require('./app');
 const notificationController = require('./controllers/notificationsController');
 
 // Swagger Configuration
@@ -15,10 +15,10 @@ const swaggerDoc = {
     },
     host: 'localhost:3000',
     schemes: ['http'],
-};z
+};
 
 const outputFile = './swagger_output.json';
-const endpointsFiles = ['./routes/notificationsRoutes.js'];
+const endpointsFiles = ['./app.js']; // File with all  routes
 
 // Create the HTTP server
 const server = http.createServer(app);
@@ -31,7 +31,7 @@ wss.on('connection', (ws, req) => {
 
     // Attach userId from query parameter (e.g., /ws/notifications?userId=123)
     const urlParams = new URLSearchParams(req.url.split('?')[1]);
-    const userId = urlParams.get('userId'); 
+    const userId = urlParams.get('userId');
     ws.userId = userId;
     console.log(`User connected with userId: ${userId}`);
 
@@ -41,13 +41,13 @@ wss.on('connection', (ws, req) => {
 
     ws.on('close', () => {
         console.log(`Client disconnected (userId: ${userId})`);
-       
+
     });
 });
 
 // Auto-generate Swagger documentation
 swaggerAutogen(outputFile, endpointsFiles).then(() => {
-    const swaggerDocument = require('./swagger_output.json'); 
+    const swaggerDocument = require('./swagger_output.json');
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
     app.use(morgan('tiny'));
 

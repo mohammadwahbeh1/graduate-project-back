@@ -1,6 +1,7 @@
 const Vehicle = require('../models/Vehicle');
 const Line = require('../models/Line');
 const User = require('../models/User');
+const  Terminal =require('../models/Terminal');
 
 const targetLatitude =32.2149;
 const targetLongitude = 35.2828;
