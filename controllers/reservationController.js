@@ -3,10 +3,23 @@ const User = require('../models/User');
 
 
 module.exports.createReservation = async (req, res) => {
-
     try {
-        const { start_destination, end_destination, reservation_type, phone_number,description } = req.body;
+        const { 
+            start_destination, 
+            end_destination, 
+            reservation_type, 
+            phone_number,
+            description,
+            scheduled_date,
+            scheduled_time,
+            is_recurring,
+            recurring_days
+        } = req.body;
+
         const user_id = req.user.id;
+
+        // Convert recurring_days array to comma-separated string if it exists
+        const recurring_days_string = recurring_days ? recurring_days.join(',') : null;
 
         const newReservation = await Reservation.create({
             user_id,
@@ -14,10 +27,13 @@ module.exports.createReservation = async (req, res) => {
             end_destination,
             reservation_type,
             phone_number,
-            status: 'pending',
-            created_at: new Date(),
             description,
-          
+            scheduled_date: scheduled_date || null,
+            scheduled_time: scheduled_time || null,
+            is_recurring: is_recurring || false,
+            recurring_days: recurring_days_string,
+            status: 'Pending',
+            created_at: new Date()
         });
 
         res.status(201).json({
@@ -25,14 +41,14 @@ module.exports.createReservation = async (req, res) => {
             data: newReservation
         });
     } catch (error) {
+        console.error('Reservation creation error:', error);
         res.status(400).json({
             status: 'error',
             message: `Error creating reservation: ${error.message}`
         });
     }
+};
 
-
-}
 
 module.exports.getReservationById = async (req, res) => {
 try {
