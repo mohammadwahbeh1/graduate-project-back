@@ -26,6 +26,7 @@ Router.route('/accept/:reservationId').patch(authenticate, reservationController
 
 // Cancel a reservation
 Router.route('/cancel/:reservationId').patch(authenticate, reservationController.cancelReservation);
+Router.route('/pause/:reservationId').patch(authenticate, reservationController.PauseReservation);
 
 
 

@@ -2,22 +2,60 @@ const Reservation=require('../models/Reservation');
 const User = require('../models/User');
 
 
-module.exports.createReservation = async (req, res) => {
+const moment = require('moment');
 
+module.exports.createReservation = async (req, res) => {
     try {
-        const { start_destination, end_destination, reservation_type, phone_number,description } = req.body;
+        const {
+            start_destination,
+            end_destination,
+            phone_number,
+            description,
+            is_recurring,
+            recurrence_pattern,
+            recurrence_interval, // سيظل معتمدًا على الحساب
+            recurrence_end_date,
+            recurring_days,
+            scheduled_date // تأكد من وجود scheduled_date في الجسم
+        } = req.body;
+
         const user_id = req.user.id;
+
+        // التحقق من الحقول اللازمة
+        if (!start_destination || !end_destination) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Please provide both start and end destinations.'
+            });
+        }
+
+        // التحقق إذا كان الحجز متكرراً وتوفير جميع الحقول اللازمة
+        if (is_recurring && (!recurrence_pattern || !recurrence_end_date || !scheduled_date)) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'For recurring reservations, please provide recurrence pattern, end date, and start date.'
+            });
+        }
+
+        // حساب recurrence_interval بناءً على التواريخ
+        let calculatedRecurrenceInterval = recurrence_interval || 1; // القيمة الافتراضية 1 إذا لم يتم توفيرها
+        if (is_recurring && recurrence_pattern && scheduled_date && recurrence_end_date) {
+            calculatedRecurrenceInterval = calculateRecurrenceInterval(scheduled_date, recurrence_pattern, recurrence_end_date);
+        }
 
         const newReservation = await Reservation.create({
             user_id,
             start_destination,
             end_destination,
-            reservation_type,
             phone_number,
+            description,
+            is_recurring: is_recurring || false,
+            recurrence_pattern: recurrence_pattern || null,
+            recurrence_interval: calculatedRecurrenceInterval,
+            recurrence_end_date: recurrence_end_date || null,
+            recurring_days: recurring_days || null,
             status: 'pending',
             created_at: new Date(),
-            description,
-          
         });
 
         res.status(201).json({
@@ -30,59 +68,107 @@ module.exports.createReservation = async (req, res) => {
             message: `Error creating reservation: ${error.message}`
         });
     }
+};
 
+// دالة لحساب قيمة recurrence_interval بناءً على نوع التكرار
+function calculateRecurrenceInterval(scheduledDate, recurrencePattern, recurrenceEndDate) {
+    const start = moment(scheduledDate); // تاريخ بداية الحجز
+    const end = moment(recurrenceEndDate); // تاريخ نهاية التكرار
 
+    let recurrenceInterval = 0;
+
+    // حساب التكرار الأسبوعي
+    if (recurrencePattern === 'Weekly') {
+        // حساب عدد الأسابيع بين تاريخ البداية وتاريخ النهاية
+        const diffInWeeks = end.diff(start, 'weeks'); // الفرق بالأسابيع
+        recurrenceInterval = diffInWeeks; // استخدم الفرق كأساس للتكرار الأسبوعي
+    }
+    // حساب التكرار الشهري
+    else if (recurrencePattern === 'Monthly') {
+        // حساب عدد الأشهر بين تاريخ البداية وتاريخ النهاية
+        const diffInMonths = end.diff(start, 'months'); // الفرق بالأشهر
+        recurrenceInterval = diffInMonths; // استخدم الفرق كأساس للتكرار الشهري
+    }
+
+    return recurrenceInterval;
 }
 
 module.exports.getReservationById = async (req, res) => {
-try {
-    const reservation=await Reservation.findOne({
-        where: {
-            reservation_id: req.params.id
-        }
-    });
-
-    res.status(200).json({
-        status:'success',
-        data: reservation
-    });
-} catch (error) {
-
-    res.status(400).json({
-        status: 'error',
-        message: `Error getting reservation: ${error.message}`
-    });
-}
-}
-
-module.exports.updateReservation = async (req, res) => {
-
     try {
-        const updateReservation = await Reservation.update({
-
-            description: req.body.description,
-            last_update: new Date()
-        },
-        {
+        const reservation = await Reservation.findOne({
             where: {
                 reservation_id: req.params.id
             }
-
         });
 
+        if (!reservation) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Reservation not found'
+            });
+        }
+
         res.status(200).json({
-            status:'success',
+            status: 'success',
+            data: reservation
+        });
+    } catch (error) {
+        res.status(400).json({
+            status: 'error',
+            message: `Error getting reservation: ${error.message}`
+        });
+    }
+};
+
+module.exports.updateReservation = async (req, res) => {
+    try {
+        // استلام الحقول من الجسم (الـ body)
+        const { description, is_recurring, recurrence_pattern, recurrence_interval, recurrence_end_date, recurring_days, status } = req.body;
+
+        // التحقق من أن الحالة (status) هي إحدى الحالات المقبولة
+        const validStatuses = ['Pending', 'Confirmed', 'Cancelled', 'Paused'];
+        if (status && !validStatuses.includes(status)) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid status value'
+            });
+        }
+
+        const updateReservation = await Reservation.update({
+                description,
+                is_recurring,
+                recurrence_pattern,
+                recurrence_interval,
+                recurrence_end_date,
+                recurring_days,
+                status,
+                created_at: new Date()
+            },
+            {
+                where: {
+                    reservation_id: req.params.id
+                }
+            });
+
+        if (updateReservation[0] === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Reservation not found'
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
             message: 'Reservation updated successfully',
             data: updateReservation
         });
     } catch (error) {
-
         res.status(400).json({
             status: 'error',
             message: `Error updating reservation: ${error.message}`
         });
     }
-}
+};
 
 module.exports.deleteReservation = async (req, res) => {
     try {
@@ -92,38 +178,43 @@ module.exports.deleteReservation = async (req, res) => {
             }
         });
 
+        if (deleteReservation === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Reservation not found'
+            });
+        }
+
         res.status(200).json({
-            status:'success',
+            status: 'success',
             message: 'Reservation deleted successfully'
         });
-
     } catch (error) {
         res.status(400).json({
             status: 'error',
             message: `Error deleting reservation: ${error.message}`
         });
-
-}
-}
-module.exports.getAllReservationsForUser=async(req,res)=>{
+    }
+};
+module.exports.getAllReservationsForUser = async (req, res) => {
     try {
         const reservations = await Reservation.findAll({
             where: {
                 user_id: req.params.id
             }
         });
+
         res.status(200).json({
-            status:'success',
+            status: 'success',
             data: reservations
         });
-}catch(err){
-    res.status(400).json({
-        status: 'error',
-        message: `Error getting reservations: ${error.message}`
-    });
-}
-}
-
+    } catch (error) {
+        res.status(400).json({
+            status: 'error',
+            message: `Error getting reservations: ${error.message}`
+        });
+    }
+};
 
 
 
@@ -148,7 +239,6 @@ module.exports.acceptReservation = async (req, res) => {
         }
 
         const driver = await User.findByPk(driverId);
-        console.log(driver);
         if (!driver || driver.role !== 'driver') {
             return res.status(403).json({
                 status: 'error',
@@ -163,24 +253,14 @@ module.exports.acceptReservation = async (req, res) => {
             });
         }
 
-       
         reservation.status = 'Confirmed';
         reservation.driver_id = driverId;
         await reservation.save();
 
-        
         res.status(200).json({
             status: 'success',
             message: 'Reservation accepted successfully',
-            data: {
-                reservation,
-                driver: {
-                    user_id: driver.user_id,
-                    username: driver.username,
-                    phone_number: driver.phone_number,
-                    email: driver.email
-                }
-            }
+            data: reservation
         });
     } catch (error) {
         res.status(500).json({
@@ -189,8 +269,6 @@ module.exports.acceptReservation = async (req, res) => {
         });
     }
 };
-
-
 
 module.exports.cancelReservation = async (req, res) => {
     try {
@@ -230,7 +308,35 @@ module.exports.cancelReservation = async (req, res) => {
 };
 
 
+module.exports.PauseReservation = async (req, res) => {
+    try {
+        const { reservationId } = req.params;
 
+        const reservation = await Reservation.findByPk(reservationId);
+
+        if (!reservation) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Reservation not found'
+            });
+        }
+
+
+        reservation.status = 'Pause';
+        await reservation.save();
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Reservation cancelled successfully',
+            data: reservation
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: `Error cancelling reservation: ${error.message}`
+        });
+    }
+};
 
 
 module.exports.getAllReservationsByDriver = async (req, res) => {
@@ -264,13 +370,8 @@ module.exports.getPendingReservations = async (req, res) => {
     try {
         const pendingReservations = await Reservation.findAll({
             where: {
-                status: 'pending',
-            },
-            include: [
-                {
-                    model: User,
-                    attributes: ['username'], }
-            ]
+                status: 'pending'
+            }
         });
 
         res.status(200).json({
