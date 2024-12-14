@@ -9,12 +9,12 @@ Router.route('/terminal-position').get(authenticate,terminalController.getTermin
 
 Router
     .route('/')
-    .get(authenticate, terminalController.getAllTerminals) // Existing route
+    .get(authenticate, terminalController.getAllTerminals)
     .post(authenticate, terminalController.createTerminal); // New POST route for creating a terminal
 
 Router
     .route('/:id')
-    .get(authenticate, terminalController.getATerminal) // Existing route
+    .get(authenticate, terminalController.getATerminal)
     .put(authenticate, terminalController.updateTerminal) // New PUT route for updating a terminal
     .delete(authenticate, terminalController.deleteTerminal); // New DELETE route for deleting a terminal
 
@@ -25,6 +25,8 @@ Router
 
 Router
 .route('/:id/lines').get(authenticate,terminalController.getLinesByTerminal);
+
+Router.route('/:id/lineVehicle/locations').get(authenticate,terminalController.getLinesWithVehicleLocations);
 
 
 

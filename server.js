@@ -18,7 +18,7 @@ const swaggerDoc = {
 };
 
 const outputFile = './swagger_output.json';
-const endpointsFiles = ['./app.js']; // File with all  routes
+const endpointsFiles = ['./app.js'];
 
 // Create the HTTP server
 const server = http.createServer(app);
