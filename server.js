@@ -21,7 +21,9 @@ const swaggerDoc = {
 };
 
 const outputFile = './swagger_output.json';
-const endpointsFiles = ['./routes/notificationsRoutes.js'];
+
+
+
 
 // Create the HTTP server
 const server = http.createServer(app);
@@ -78,6 +80,7 @@ wss.on('connection', (ws, req) => {
     // Handle client disconnect
     ws.on('close', () => {
         console.log(`Client disconnected (userId: ${userId})`);
+
         connectedClients.delete(userId);
         console.log('Remaining clients:', Array.from(connectedClients.keys()));
     });
@@ -86,6 +89,9 @@ wss.on('connection', (ws, req) => {
     ws.on('error', (error) => {
         console.error(`WebSocket error for client ${userId}:`, error);
         connectedClients.delete(userId);
+
+
+
     });
 });
 

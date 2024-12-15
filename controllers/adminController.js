@@ -58,12 +58,32 @@ module.exports.getAllLineManagers = async (req, res) => {
 };
 
 
+
+
+
 module.exports.getAllTerminals = async (req, res) => {
     try {
-        const terminals = await Terminal.findAll();
+        const [results, metadata] = await sequelize.query(`
+            SELECT
+                t.terminal_id,
+                t.terminal_name,
+                t.user_id,
+                t.latitude,
+                t.longitude,
+                COUNT(v.vehicle_id) AS vehicleCount
+            FROM
+                \`Terminals\` AS t
+                    LEFT JOIN
+                \`Lines\` AS l ON t.terminal_id = l.terminal_id
+                    LEFT JOIN
+                \`Vehicles\` AS v ON l.line_id = v.line_id
+            GROUP BY
+                t.terminal_id, t.terminal_name, t.total_vehicles, t.user_id, t.latitude, t.longitude
+        `);
+
         res.status(200).json({
             status: 'success',
-            data: terminals
+            data: results
         });
     } catch (error) {
         res.status(400).json({

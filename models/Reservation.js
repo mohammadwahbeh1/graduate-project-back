@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
-const User = require('./User');
+const User = require('./User'); // Relation with User
 
 const Reservation = sequelize.define('Reservation', {
     reservation_id: {
@@ -26,22 +26,22 @@ const Reservation = sequelize.define('Reservation', {
     },
     start_destination: {
         type: DataTypes.TEXT,
-        allowNull: false
+        allowNull: false 
     },
     end_destination: {
         type: DataTypes.TEXT,
-        allowNull: false
+        allowNull: false 
     },
     reservation_type: {
-        type: DataTypes.ENUM('Single', 'Family'),
+        type: DataTypes.ENUM('single', 'family'),
         allowNull: false
     },
     phone_number: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false 
     },
     status: {
-        type: DataTypes.ENUM('Pending', 'Confirmed', 'Cancelled'),
+        type: DataTypes.ENUM('Pending', 'Confirmed', 'Cancelled', 'Pause'),
         defaultValue: 'Pending'
     },
     scheduled_date: {
@@ -65,6 +65,36 @@ const Reservation = sequelize.define('Reservation', {
         defaultValue: DataTypes.NOW
     },
     description: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    scheduled_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    scheduled_time: {
+        type: DataTypes.TIME,
+        allowNull: true
+    },
+    is_recurring: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
+    },
+    recurrence_pattern: {
+        type: DataTypes.ENUM('Weekly', 'Monthly'),
+        allowNull: true
+    },
+    recurrence_interval: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1,
+        allowNull: true
+    },
+    recurrence_end_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    recurring_days: {
         type: DataTypes.TEXT,
         allowNull: true
     }

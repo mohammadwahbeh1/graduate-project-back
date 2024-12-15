@@ -18,7 +18,7 @@ module.exports.createReservation = async (req, res) => {
 
         const user_id = req.user.id;
 
-        // Convert recurring_days array to comma-separated string if it exists
+        
         const recurring_days_string = recurring_days ? recurring_days.join(',') : null;
 
         const newReservation = await Reservation.create({

@@ -8,6 +8,7 @@ const Terminal = require('../models/Terminal');
 const User = require('../models/User');
 const sequelize = require('../db');
 
+
 module.exports.getAllTerminals = async (req, res) => {
     try {
         const terminals = await Terminal.findAll();
@@ -53,26 +54,75 @@ module.exports.getATerminal = async (req, res) => {
     }
 };
 
+
+
+
 module.exports.getLinesByTerminal = async (req, res) => {
-    try {
-        const lines = await Line.findAll({
-            where: {
-                terminal_id: req.params.id
-            },
-            attributes: ['line_name', 'last_updated', 'current_vehicles_count']
+    const terminalId = req.params.id;
+
+// التحقق من صحة معرف التيرمنال (اختياري)
+    if (isNaN(terminalId)) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'معرف التيرمنال غير صالح'
         });
+    }
+
+    try {
+        const query = `
+            SELECT
+                \`l\`.\`line_id\`,
+                \`l\`.\`line_name\`,
+                \`l\`.\`last_updated\`,
+                \`l\`.\`lat\`,
+                \`l\`.\`long\`,
+                COUNT(\`v\`.\`vehicle_id\`) AS current_vehicles_count
+            FROM
+                \`Lines\` \`l\`
+                    LEFT JOIN
+                \`Vehicles\` \`v\` ON \`l\`.\`line_id\` = \`v\`.\`line_id\` AND \`v\`.\`current_status\` = 'in_terminal'
+            WHERE
+                \`l\`.\`terminal_id\` = :terminalId
+            GROUP BY
+                \`l\`.\`line_id\`, \`l\`.\`line_name\`, \`l\`.\`last_updated\`
+            ORDER BY
+                \`l\`.\`line_name\` ASC
+        `;
+
+        // استرجاع النتائج من قاعدة البيانات
+        const lines = await sequelize.query(query, {
+            replacements: { terminalId },
+            type: sequelize.QueryTypes.SELECT // التأكد من استخدام QueryTypes.SELECT
+        });
+
+        // إضافة سجلات لمراجعة البيانات
+        console.log('Fetched lines:', lines);
+
+        // التأكد من أنه لا يوجد تكرار
+        const uniqueLines = lines.flat(); // في حال كانت النتيجة مصفوفات مكررة داخل مصفوفة، يمكن "تفكيك" المصفوفات
+
+        if (uniqueLines.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'لا توجد خطوط في هذا التيرمنال أو لا توجد سيارات في التيرمنال حالياً'
+            });
+        }
 
         res.status(200).json({
             status: 'success',
-            results: lines.length,
-            data: lines
+            results: uniqueLines.length,
+            data: uniqueLines
         });
+
     } catch (error) {
+        console.error('Error fetching lines for terminal:', error);
         res.status(400).json({
             status: 'error',
             message: `Error fetching lines for terminal: ${error.message}`
         });
     }
+
+
 };
 
 module.exports.getAllTerminalsManager = async (req, res) => {
@@ -230,3 +280,137 @@ module.exports.getTerminalPosition = async (req, res) => {
   }
 };
 
+
+module.exports.getLinesWithVehicleLocations = async (req, res) => {
+    try {
+        const terminalId = req.params.id;
+
+        if (isNaN(terminalId)) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'معرف التيرمنال غير صالح'
+            });
+        }
+
+        const terminalQuery = `
+            SELECT latitude AS terminal_lat, longitude AS terminal_long
+            FROM \`Terminals\`
+            WHERE terminal_id = :terminalId;
+        `;
+
+        const terminal = await sequelize.query(terminalQuery, {
+            replacements: { terminalId },
+            type: sequelize.QueryTypes.SELECT
+        });
+
+        if (terminal.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'التيرمنال غير موجود'
+            });
+        }
+
+        const terminalLat = terminal[0].terminal_lat;
+        const terminalLong = terminal[0].terminal_long;
+
+        const query = `
+            SELECT
+                l.line_id,
+                l.line_name,
+                l.last_updated,
+                l.lat AS line_lat,
+                l.long AS line_long,
+                v.vehicle_id,
+                v.latitude AS vehicle_lat,
+                v.longitude AS vehicle_long
+            FROM
+                \`Lines\` l
+                    LEFT JOIN
+                \`Vehicles\` v ON l.line_id = v.line_id
+            WHERE
+                l.terminal_id = :terminalId
+              AND v.current_status = 'in_terminal'
+            ORDER BY
+                l.line_name ASC;
+        `;
+
+        // استرجاع النتائج من قاعدة البيانات
+        const results = await sequelize.query(query, {
+            replacements: { terminalId },
+            type: sequelize.QueryTypes.SELECT
+        });
+
+        // التأكد من وجود نتائج
+        if (results.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'لا توجد بيانات لهذا التيرمنال أو لا توجد سيارات في التيرمنال حالياً'
+            });
+        }
+
+        // دالة لحساب المسافة بين نقطتين باستخدام صيغة Haversine
+        const calculateDistance = (lat1, lon1, lat2, lon2) => {
+            const R = 6371; // نصف قطر الكرة الأرضية بالكيلومتر
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * (Math.PI / 180)) *
+                Math.cos(lat2 * (Math.PI / 180)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c; // المسافة بالكيلومتر
+        };
+
+        // تنظيم البيانات بشكل مناسب مع إضافة المسافة وlast_updated
+        const linesWithVehicles = results.reduce((acc, row) => {
+            const lineDistance = calculateDistance(terminalLat, terminalLong, row.line_lat, row.line_long);
+            const vehicleDistance = calculateDistance(terminalLat, terminalLong, row.vehicle_lat, row.vehicle_long);
+
+            // العثور على الخط
+            const line = acc.find(item => item.line_id === row.line_id);
+            if (line) {
+                // إضافة السيارة مع المسافة الخاصة بها
+                line.vehicles.push({
+                    vehicle_id: row.vehicle_id,
+                    vehicle_lat: row.vehicle_lat,
+                    vehicle_long: row.vehicle_long,
+                    distance_from_terminal: vehicleDistance
+                });
+            } else {
+                // إذا كان الخط غير موجود بعد، أضفه مع السيارة
+                acc.push({
+                    line_id: row.line_id,
+                    line_name: row.line_name,
+                    last_updated: row.last_updated, // إضافة last_updated هنا
+                    line_lat: row.line_lat,
+                    line_long: row.line_long,
+                    distance_from_terminal: lineDistance,
+                    vehicles: [{
+                        vehicle_id: row.vehicle_id,
+                        vehicle_lat: row.vehicle_lat,
+                        vehicle_long: row.vehicle_long,
+                        distance_from_terminal: vehicleDistance
+                    }]
+                });
+            }
+            return acc;
+        }, []);
+
+        // إرسال الاستجابة بنجاح
+        res.status(200).json({
+            status: 'success',
+            results: linesWithVehicles.length,
+            data: linesWithVehicles
+        });
+
+    } catch (error) {
+        console.error('Error fetching lines with vehicles and locations:', error);
+        res.status(500).json({
+            status: 'error',
+            message: `Error fetching lines with vehicles: ${error.message}`
+        });
+    }
+};
