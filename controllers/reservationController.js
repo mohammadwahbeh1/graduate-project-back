@@ -13,15 +13,15 @@ module.exports.createReservation = async (req, res) => {
             description,
             is_recurring,
             recurrence_pattern,
-            recurrence_interval, // سيظل معتمدًا على الحساب
+            recurrence_interval,
             recurrence_end_date,
             recurring_days,
-            scheduled_date // تأكد من وجود scheduled_date في الجسم
+            scheduled_date ,
+            scheduled_time
         } = req.body;
 
         const user_id = req.user.id;
 
-        // التحقق من الحقول اللازمة
         if (!start_destination || !end_destination) {
             return res.status(400).json({
                 status: 'error',
@@ -29,7 +29,6 @@ module.exports.createReservation = async (req, res) => {
             });
         }
 
-        // التحقق إذا كان الحجز متكرراً وتوفير جميع الحقول اللازمة
         if (is_recurring && (!recurrence_pattern || !recurrence_end_date || !scheduled_date)) {
             return res.status(400).json({
                 status: 'error',
@@ -54,6 +53,11 @@ module.exports.createReservation = async (req, res) => {
             recurrence_interval: calculatedRecurrenceInterval,
             recurrence_end_date: recurrence_end_date || null,
             recurring_days: recurring_days || null,
+            scheduled_date:  scheduled_date || null,
+            scheduled_time:  scheduled_time || null,
+
+
+
             status: 'pending',
             created_at: new Date(),
         });
