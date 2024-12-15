@@ -2,10 +2,13 @@ const express = require('express');
 const morgan = require('morgan');
 const swaggerAutogen = require('swagger-autogen')();
 const swaggerUi = require('swagger-ui-express');
-const http = require('http'); 
+const http = require('http');
 const WebSocket = require('ws');
-const app = require('./app'); 
+const app = require('./app');
 const notificationController = require('./controllers/notificationsController');
+
+// WebSocket clients map to track connections
+const connectedClients = new Map();
 
 // Swagger Configuration
 const swaggerDoc = {
@@ -17,8 +20,8 @@ const swaggerDoc = {
     schemes: ['http'],
 };
 
-const outputFile = './swagger_output.json'; 
-const endpointsFiles = ['./routes/notificationsRoutes.js']; 
+const outputFile = './swagger_output.json';
+const endpointsFiles = ['./routes/notificationsRoutes.js'];
 
 // Create the HTTP server
 const server = http.createServer(app);
@@ -26,34 +29,78 @@ const wss = new WebSocket.Server({ server, path: '/ws/notifications' });
 
 notificationController.setWebSocketServer(wss);
 
+// WebSocket connection handler
 wss.on('connection', (ws, req) => {
     console.log('New client connected via WebSocket');
 
-    // Attach userId from query parameter (e.g., /ws/notifications?userId=123)
     const urlParams = new URLSearchParams(req.url.split('?')[1]);
-    const userId = urlParams.get('userId'); 
+    const userId = urlParams.get('userId');
     ws.userId = userId;
-    console.log(`User connected with userId: ${userId}`);
+    
+    // Store client connection
+    connectedClients.set(userId, ws);
+    console.log(`Client connected with userId: ${userId}`);
+    console.log('Connected clients:', Array.from(connectedClients.keys()));
 
+    // Message handler
     ws.on('message', (message) => {
-        console.log(`Received message: ${message}`);
+        try {
+            const parsedMessage = JSON.parse(message);
+            console.log('Received message:', parsedMessage);
+
+            if (parsedMessage.type === 'webrtc') {
+                const targetId = String(parsedMessage.targetId);
+                const targetClient = connectedClients.get(targetId);
+
+                if (targetClient && targetClient.readyState === WebSocket.OPEN) {
+                    console.log(`Forwarding WebRTC message to client ${targetId}`);
+                    targetClient.send(JSON.stringify({
+                        ...parsedMessage,
+                        fromUserId: userId
+                    }));
+                } else {
+                    console.log(`Target client ${targetId} not found or not connected`);
+                    ws.send(JSON.stringify({
+                        type: 'error',
+                        message: 'Target user not connected'
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error('Message handling error:', error);
+            ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Invalid message format'
+            }));
+        }
     });
 
+    // Handle client disconnect
     ws.on('close', () => {
         console.log(`Client disconnected (userId: ${userId})`);
-       
+        connectedClients.delete(userId);
+        console.log('Remaining clients:', Array.from(connectedClients.keys()));
+    });
+
+    // Handle errors
+    ws.on('error', (error) => {
+        console.error(`WebSocket error for client ${userId}:`, error);
+        connectedClients.delete(userId);
     });
 });
 
-// Auto-generate Swagger documentation
+// Generate Swagger documentation and start server
 swaggerAutogen(outputFile, endpointsFiles).then(() => {
-    const swaggerDocument = require('./swagger_output.json'); 
+    const swaggerDocument = require('./swagger_output.json');
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
     app.use(morgan('tiny'));
 
-    // Start the server using the HTTP server
-    server.listen(3000, () => {
-        console.log('Server is running on port 3000...');
-        console.log('Swagger documentation is available at http://localhost:3000/api-docs');
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log(`Swagger documentation available at http://localhost:${PORT}/api-docs`);
     });
 });
+
+// Export for testing purposes
+module.exports = { server, wss };
