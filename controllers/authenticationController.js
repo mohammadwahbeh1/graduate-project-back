@@ -13,7 +13,7 @@ module.exports.register = async (req, res) => {
         }
 
         
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 7);
 
         
         const newUser = await User.create({ 
@@ -27,10 +27,10 @@ module.exports.register = async (req, res) => {
             address          
         });
 
-        // Generate a token for the new user
+        
         const token = generateToken(newUser);
 
-        // Send the response with user data and token
+      
         res.status(201).json({
             status: 'success', 
             data: { 
@@ -39,9 +39,9 @@ module.exports.register = async (req, res) => {
                     email: newUser.email,
                     phone_number: newUser.phone_number,
                     role: newUser.role,
-                    date_of_birth: newUser.date_of_birth,  // Include date of birth
-                    gender: newUser.gender,                // Include gender
-                    address: newUser.address               // Include address
+                    date_of_birth: newUser.date_of_birth,  
+                    gender: newUser.gender,               
+                    address: newUser.address              
                 },
                 token
             }
@@ -60,7 +60,7 @@ module.exports.login = async (req, res) => {
         const user = await User.findOne({ where: { email } },
             
         );
-        console.log(user);
+      
         //const hashedPassword = await bcrypt.hash(password_hash, 10);
 
         if (!user || !(await user.validPassword(password))) {

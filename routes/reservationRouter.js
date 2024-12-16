@@ -32,4 +32,3 @@ Router.route('/pause/:reservationId').patch(authenticate, reservationController.
 
 
 module.exports =Router;
-

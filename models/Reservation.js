@@ -2,6 +2,8 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 const User = require('./User'); // Relation with User
 
+
+
 const Reservation = sequelize.define('Reservation', {
     reservation_id: {
         type: DataTypes.INTEGER,
@@ -25,40 +27,20 @@ const Reservation = sequelize.define('Reservation', {
         allowNull: true
     },
     start_destination: {
-        type: DataTypes.TEXT,
-        allowNull: false 
+        type: DataTypes.STRING(50),
+        allowNull: false
     },
     end_destination: {
-        type: DataTypes.TEXT,
-        allowNull: false 
-    },
-    reservation_type: {
-        type: DataTypes.ENUM('single', 'family'),
+        type: DataTypes.STRING(50),
         allowNull: false
     },
     phone_number: {
-        type: DataTypes.STRING,
-        allowNull: false 
+        type: DataTypes.STRING(15),
+        allowNull: false
     },
     status: {
         type: DataTypes.ENUM('Pending', 'Confirmed', 'Cancelled', 'Pause'),
         defaultValue: 'Pending'
-    },
-    scheduled_date: {
-        type: DataTypes.DATEONLY,
-        allowNull: true
-    },
-    scheduled_time: {
-        type: DataTypes.TIME,
-        allowNull: true
-    },
-    is_recurring: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
-    },
-    recurring_days: {
-        type: DataTypes.TEXT,  // Stores array of selected days
-        allowNull: true
     },
     created_at: {
         type: DataTypes.DATE,
@@ -105,5 +87,4 @@ const Reservation = sequelize.define('Reservation', {
 
 Reservation.belongsTo(User, { foreignKey: 'user_id' });
 User.hasMany(Reservation, { foreignKey: 'user_id' });
-
 module.exports = Reservation;
