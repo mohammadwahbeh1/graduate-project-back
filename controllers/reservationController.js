@@ -81,17 +81,14 @@ function calculateRecurrenceInterval(scheduledDate, recurrencePattern, recurrenc
 
     let recurrenceInterval = 0;
 
-    // حساب التكرار الأسبوعي
     if (recurrencePattern === 'Weekly') {
-        // حساب عدد الأسابيع بين تاريخ البداية وتاريخ النهاية
-        const diffInWeeks = end.diff(start, 'weeks'); // الفرق بالأسابيع
-        recurrenceInterval = diffInWeeks; // استخدم الفرق كأساس للتكرار الأسبوعي
+        const diffInWeeks = end.diff(start, 'weeks');
+        recurrenceInterval = diffInWeeks;
     }
-    // حساب التكرار الشهري
+
     else if (recurrencePattern === 'Monthly') {
-        // حساب عدد الأشهر بين تاريخ البداية وتاريخ النهاية
-        const diffInMonths = end.diff(start, 'months'); // الفرق بالأشهر
-        recurrenceInterval = diffInMonths; // استخدم الفرق كأساس للتكرار الشهري
+        const diffInMonths = end.diff(start, 'months');
+        recurrenceInterval = diffInMonths;
     }
 
     return recurrenceInterval;
@@ -390,3 +387,5 @@ module.exports.getPendingReservations = async (req, res) => {
         });
     }
 };
+
+
