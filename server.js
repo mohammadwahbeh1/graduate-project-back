@@ -23,9 +23,6 @@ const swaggerDoc = {
 const outputFile = './swagger_output.json';
 const endpointsFiles = ['./app.js'];
 
-
-
-
 // Create the HTTP server
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server, path: '/ws/notifications' });
@@ -39,6 +36,7 @@ wss.on('connection', (ws, req) => {
     const urlParams = new URLSearchParams(req.url.split('?')[1]);
     const userId = urlParams.get('userId');
     ws.userId = userId;
+    ws.isAvailable = true; // Set initial availability status
     
     // Store client connection
     connectedClients.set(userId, ws);
@@ -51,16 +49,32 @@ wss.on('connection', (ws, req) => {
             const parsedMessage = JSON.parse(message);
             console.log('Received message:', parsedMessage);
 
-            if (parsedMessage.type === 'webrtc') {
+            if (parsedMessage.type === 'status') {
+                // Update client's availability status
+                const client = connectedClients.get(userId);
+                if (client) {
+                    client.isAvailable = parsedMessage.status === 'available';
+                    console.log(`Client ${userId} availability status updated to: ${parsedMessage.status}`);
+                }
+            } else if (parsedMessage.type === 'webrtc') {
                 const targetId = String(parsedMessage.targetId);
                 const targetClient = connectedClients.get(targetId);
 
                 if (targetClient && targetClient.readyState === WebSocket.OPEN) {
-                    console.log(`Forwarding WebRTC message to client ${targetId}`);
-                    targetClient.send(JSON.stringify({
-                        ...parsedMessage,
-                        fromUserId: userId
-                    }));
+                    // Check if the target client is available
+                    if (targetClient.isAvailable) {
+                        console.log(`Forwarding WebRTC message to client ${targetId}`);
+                        targetClient.send(JSON.stringify({
+                            ...parsedMessage,
+                            fromUserId: userId
+                        }));
+                    } else {
+                        console.log(`Target client ${targetId} is unavailable`);
+                        ws.send(JSON.stringify({
+                            type: 'error',
+                            message: 'Target user is unavailable'
+                        }));
+                    }
                 } else {
                     console.log(`Target client ${targetId} not found or not connected`);
                     ws.send(JSON.stringify({
@@ -90,9 +104,6 @@ wss.on('connection', (ws, req) => {
     ws.on('error', (error) => {
         console.error(`WebSocket error for client ${userId}:`, error);
         connectedClients.delete(userId);
-
-
-
     });
 });
 
