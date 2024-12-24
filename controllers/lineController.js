@@ -310,3 +310,45 @@ module.exports.getLineLocation = async(req, res)=>{
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+exports.getDriverRating = async (req, res) => {
+    try {
+        // افترض أن middleware المصادقة قد أضاف معلومات المستخدم إلى req.user
+        const lineManagerId = req.user.id;
+
+        // تعريف الاستعلام SQL مع معاملات قابلة للاستبدال
+        const sqlQuery = `
+            SELECT
+                u.user_id AS driver_id,
+                u.username AS driver_name,
+                IFNULL(AVG(dr.rating), 0) AS avg_rating
+            FROM \`Vehicles\` v
+                     JOIN \`Lines\` l ON v.\`line_id\` = l.\`line_id\`
+                     JOIN \`Users\` u ON v.\`driver_id\` = u.\`user_id\`
+                     LEFT JOIN \`Driver_Ratings\` dr ON dr.\`driver_id\` = u.\`user_id\`
+            WHERE l.\`line_manager_id\` = :lineManagerId
+              AND u.\`role\` = 'driver'
+            GROUP BY
+                u.\`user_id\`,
+                u.\`username\`
+        `;
+
+        // تنفيذ الاستعلام باستخدام Sequelize
+        const drivers = await sequelize.query(sqlQuery, {
+            replacements: { lineManagerId }, // استبدال المعاملات
+            type: sequelize.QueryTypes.SELECT, // تحديد نوع الاستعلام
+        });
+
+        // إعادة النتائج كاستجابة ناجحة
+        return res.status(200).json({
+            success: true,
+            data: drivers,
+        });
+    } catch (error) {
+        console.error('Error fetching driver ratings:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal Server Error',
+        });
+    }
+};

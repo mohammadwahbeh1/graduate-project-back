@@ -12,6 +12,7 @@ const loginRouter= require('./routes/loginRouter');
 const registerRouter= require('./routes/signUpRouter');
 const adminRouter = require('./routes/adminRouter'); 
 const notificationsRouter=require('./routes/notificationsRouter');
+const driverRatingsRouter=require('./routes/driverRatingsRouter');
 const cors = require('cors');
 
 
@@ -30,6 +31,7 @@ app.use('/api/v1/register', registerRouter);
 app.use('/api/v1/login', loginRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/notifications', notificationsRouter);
+app.use('/api/v1/driver-ratings', driverRatingsRouter);
 
 
 
