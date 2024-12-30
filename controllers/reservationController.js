@@ -386,4 +386,4 @@ module.exports.getPendingReservations = async (req, res) => {
             message: `Error fetching pending reservations: ${error.message}`
         });
     }
-}
+};
