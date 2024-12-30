@@ -47,7 +47,20 @@ const User = sequelize.define(
         license_number:{
             type: DataTypes.TEXT,
             allowNull: true,
+        },
+        line_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        reset_code: {
+            type: DataTypes.TEXT,
+            allowNull: true,  
+        },
+        reset_code_expiry: {
+            type: DataTypes.TIME,
+            allowNull: true,  
         }
+
     },
     {
         tableName: 'Users',

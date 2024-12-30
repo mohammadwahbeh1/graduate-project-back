@@ -6,9 +6,23 @@ const authenticate = require('../middleware/protectRoutes');
 
 
 
+
+Router.route('/reset-password')
+ .post(userController.resetPassword); 
+ 
+ Router.route('/forgot-password')
+.post(userController.forgotPassword); 
+
+Router.post('/verify-reset-code', userController.verifyCode);
+
 Router.route('/profile')
 .get(authenticate,userController.getAuser)
 .patch(authenticate, userController.updateProfile);
+
+
+
+
+
 
 
 
@@ -17,7 +31,7 @@ Router.route('/')
 
 Router.route('/update-role')
     .patch(authenticate, userController.updateUserRole);
-
+    
 
 
 
