@@ -37,7 +37,7 @@ wss.on('connection', (ws, req) => {
     const userId = urlParams.get('userId');
     ws.userId = userId;
     ws.isAvailable = true; // Set initial availability status
-    
+
     // Store client connection
     connectedClients.set(userId, ws);
     console.log(`Client connected with userId: ${userId}`);
@@ -116,6 +116,17 @@ swaggerAutogen(outputFile, endpointsFiles).then(() => {
     const PORT = process.env.PORT || 3000;
     server.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
+
+
+
+
+
+
+
+
+
+
+
         console.log(`Swagger documentation available at http://localhost:${PORT}/api-docs`);
     });
 });
