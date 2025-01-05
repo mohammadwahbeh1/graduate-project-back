@@ -13,6 +13,7 @@ const registerRouter= require('./routes/signUpRouter');
 const adminRouter = require('./routes/adminRouter'); 
 const notificationsRouter=require('./routes/notificationsRouter');
 const driverRatingsRouter=require('./routes/driverRatingsRouter');
+const messagesRouter=require('./routes/messagesRouter');
 const cors = require('cors');
 
 
@@ -20,7 +21,7 @@ app.use(express.json());
 app.use(cors());
 
 
-
+app.use('/api/v1/messages', messagesRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/terminals', terminalRouter);
 app.use('/api/v1/line', lineRouter);

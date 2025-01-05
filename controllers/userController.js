@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const { Op } = require('sequelize');
-const jwt = require('jsonwebtoken'); // Import JWT library
+const jwt = require('jsonwebtoken'); 
 
 const EMAIL_USERNAME = 'naqalati42@gmail.com';
 
