@@ -6,6 +6,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const app = require('./app');
 const notificationController = require('./controllers/notificationsController');
+const Message = require('./models/Message');
 
 // WebSocket clients map to track connections
 const connectedClients = new Map();
@@ -44,10 +45,36 @@ wss.on('connection', (ws, req) => {
     console.log('Connected clients:', Array.from(connectedClients.keys()));
 
     // Message handler
-    ws.on('message', (message) => {
+    ws.on('message', async(message) => {
         try {
             const parsedMessage = JSON.parse(message);
             console.log('Received message:', parsedMessage);
+            
+            if (parsedMessage.type === 'chat') {
+                await Message.create({
+                    sender_id: userId,
+                    receiver_id: parsedMessage.receiverId,
+                    content: parsedMessage.content,
+                    is_image: false,
+                    timestamp: new Date(),
+                    is_read: false,
+                });
+                
+                const targetId = String(parsedMessage.receiverId);
+                const targetClient = connectedClients.get(`${targetId}`);
+                console.log(`the target id ${targetId} and the targetClient ${targetClient.userId}`);
+                
+                if (targetClient.readyState === WebSocket.OPEN) {
+                    console.log(`Forwarding WebRTC message to client ${targetId}`);
+                    targetClient.send(JSON.stringify({
+                        type: 'chat',
+                        senderId: userId,
+                        receiverId: parsedMessage.receiverId,
+                        content: parsedMessage.content,
+                        timestamp: new Date()
+                    }));
+                }
+            }
 
             if (parsedMessage.type === 'status') {
                 // Update client's availability status
