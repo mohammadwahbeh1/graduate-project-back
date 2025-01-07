@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 const User = require('./User'); // Relation with User
+const Reviews = require('./Reviews'); // Relation with User
 
 const Terminal = sequelize.define('Terminal', {
     terminal_id: {
@@ -38,5 +39,10 @@ const Terminal = sequelize.define('Terminal', {
 });
 
 Terminal.belongsTo(User, { foreignKey: 'user_id', as: 'manager' });
+
+
+Terminal.hasMany(Reviews, { foreignKey: 'terminal_id' });
+Reviews.belongsTo(Terminal, { foreignKey: 'terminal_id' });
+
 
 module.exports = Terminal;

@@ -6,12 +6,31 @@ const Line = require('../models/Line');
 const Vehicle = require('../models/Vehicle');
 const Terminal = require('../models/Terminal');
 const User = require('../models/User');
+const Reviews = require('../models/Reviews');
 const sequelize = require('../db');
+
 
 
 module.exports.getAllTerminals = async (req, res) => {
     try {
-        const terminals = await Terminal.findAll();
+        const terminals = await Terminal.findAll({
+            attributes: {
+                include: [
+                    [
+                        sequelize.fn('AVG', sequelize.col('Reviews.rating')),
+                        'average_rating'
+                    ]
+                ]
+            },
+            include: [
+                {
+                    model: Reviews,
+                    attributes: []
+                }
+            ],
+            group: ['Terminal.terminal_id'],
+            order: [['terminal_id', 'ASC']]
+        });
 
         res.status(200).json({
             status: 'success',
@@ -26,7 +45,6 @@ module.exports.getAllTerminals = async (req, res) => {
         });
     }
 };
-
 module.exports.getATerminal = async (req, res) => {
     try {
         const terminal = await Terminal.findOne({
