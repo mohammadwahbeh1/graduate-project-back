@@ -13,8 +13,7 @@ module.exports.register = async (req, res) => {
             date_of_birth, 
             gender, 
             address,
-            license_number,
-            line_id 
+
         } = req.body;
 
         console.log('Registering user with data:', req.body);
@@ -25,13 +24,7 @@ module.exports.register = async (req, res) => {
         }
 
         // Role-specific validation
-        if (role === 'driver' && !license_number) {
-            return res.status(400).json({ status: 'error', message: 'License number is required for drivers.' });
-        }
 
-        if (role === 'line manager' && !line_id) {
-            return res.status(400).json({ status: 'error', message: 'Line ID is required for line managers.' });
-        }
 
         const hashedPassword = await bcrypt.hash(password, 7);
 
@@ -46,15 +39,9 @@ module.exports.register = async (req, res) => {
             gender,
             address
         };
-        console.log(line_id, userData.role);
+        console.log(userData.role);
 
-        // Add role-specific fields
-        if (role === 'driver') {
-            userData.license_number = license_number;
-        }
-        if (role === 'line manager') {
-            userData.line_id = line_id;
-        }
+
 
         const newUser = await User.create(userData);
 
@@ -71,12 +58,6 @@ module.exports.register = async (req, res) => {
             address: newUser.address
         };
 
-        if (role === 'driver') {
-            responseData.license_number = newUser.license_number;
-        }
-        if (role === 'line manager') {
-            responseData.line_id = newUser.line_id;
-        }
 
         res.status(201).json({
             status: 'success',
