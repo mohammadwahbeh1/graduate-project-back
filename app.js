@@ -16,7 +16,9 @@ const messagesRouter=require('./routes/messagesRouter');
 const driverQueRoutes = require('./routes/driverQueRoutes');
 
 const cors = require('cors');
+const {join} = require("node:path");
 
+app.use('/uploads', express.static(join(__dirname, 'uploads')));
 
 app.use(express.json());
 app.use(cors());
