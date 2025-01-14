@@ -83,5 +83,31 @@ module.exports.postMessages = async(req,res)=>{
   }
 }
 
+exports.deleteMessage = async (req, res) => {
+  try {
+    const messageId = req.params.id;
+    const userId = req.user.id;
+
+    const message = await Messages.findOne({
+      where: {
+        message_id: messageId,
+        [Op.or]: [
+          { sender_id: userId },
+          { receiver_id: userId }
+        ]
+      }
+    });
+
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found or unauthorized' });
+    }
+
+    await message.destroy();
+    res.status(200).json({ message: 'Message deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting message:', error);
+    res.status(500).json({ error: 'Failed to delete message' });
+  }
+};
 
 

@@ -48,13 +48,7 @@ module.exports.register = async (req, res) => {
         };
         console.log(line_id, userData.role);
 
-        // Add role-specific fields
-        if (role === 'driver') {
-            userData.license_number = license_number;
-        }
-        if (role === 'line manager') {
-            userData.line_id = line_id;
-        }
+        
 
         const newUser = await User.create(userData);
 
@@ -71,12 +65,7 @@ module.exports.register = async (req, res) => {
             address: newUser.address
         };
 
-        if (role === 'driver') {
-            responseData.license_number = newUser.license_number;
-        }
-        if (role === 'line manager') {
-            responseData.line_id = newUser.line_id;
-        }
+    
 
         res.status(201).json({
             status: 'success',
@@ -100,11 +89,15 @@ module.exports.login = async (req, res) => {
         const user = await User.findOne({ where: { email } },
             
         );
+        console.log(user);
       
         //const hashedPassword = await bcrypt.hash(password_hash, 10);
 
         if (!user || !(await user.validPassword(password))) {
+            console.log("error: invalid password");
+
             return res.status(401).json({ status: 'error', message: 'Invalid email or password' });
+
         }
 
         const token = generateToken(user);

@@ -44,14 +44,8 @@ const User = sequelize.define(
             type: DataTypes.STRING,
             allowNull: false, 
         },
-        license_number:{
-            type: DataTypes.TEXT,
-            allowNull: true,
-        },
-        line_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },
+     
+      
         reset_code: {
             type: DataTypes.TEXT,
             allowNull: true,  
