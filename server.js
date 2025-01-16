@@ -51,7 +51,7 @@ wss.on('connection', (ws, req) => {
             console.log('Received message:', parsedMessage);
             
             if (parsedMessage.type === 'chat') {
-                await Message.create({
+                const createdMessage = await Message.create({
                     sender_id: userId,
                     receiver_id: parsedMessage.receiverId,
                     content: parsedMessage.content,
@@ -62,19 +62,74 @@ wss.on('connection', (ws, req) => {
                 
                 const targetId = String(parsedMessage.receiverId);
                 const targetClient = connectedClients.get(`${targetId}`);
-                console.log(`the target id ${targetId} and the targetClient ${targetClient.userId}`);
                 
-                if (targetClient.readyState === WebSocket.OPEN) {
-                    console.log(`Forwarding WebRTC message to client ${targetId}`);
+                if (targetClient && targetClient.readyState === WebSocket.OPEN) {
                     targetClient.send(JSON.stringify({
                         type: 'chat',
                         senderId: userId,
                         receiverId: parsedMessage.receiverId,
                         content: parsedMessage.content,
+                        messageId: createdMessage.message_id.toString(),
                         timestamp: new Date()
                     }));
                 }
+                
+                // Send message ID back to sender
+                ws.send(JSON.stringify({
+                    type: 'message_sent',
+                    messageId: createdMessage.message_id.toString()
+                }));
             }
+            
+            if (parsedMessage.type === 'delete_message') {
+                const messageId = parsedMessage.messageId;
+                const senderId = userId;
+                
+                try {
+                    const message = await Message.findOne({
+                        where: { message_id: messageId }
+                    });
+                    
+                    if (!message) {
+                        ws.send(JSON.stringify({
+                            type: 'error',
+                            message: 'Message not found'
+                        }));
+                        return;
+                    }
+                    
+                    if (message.sender_id === parseInt(senderId)) {
+                        // Get both sender and receiver clients
+                        const receiverId = String(message.receiver_id);
+                        const senderId = String(message.sender_id);
+                        
+                        const receiverClient = connectedClients.get(receiverId);
+                        const senderClient = connectedClients.get(senderId);
+                        
+                        // Send delete event to both clients
+                        const deleteEvent = JSON.stringify({
+                            type: 'delete_message',
+                            messageId: messageId.toString()
+                        });
+                        
+                        if (receiverClient && receiverClient.readyState === WebSocket.OPEN) {
+                            receiverClient.send(deleteEvent);
+                        }
+                        
+                        if (senderClient && senderClient.readyState === WebSocket.OPEN) {
+                            senderClient.send(deleteEvent);
+                        }
+                        
+                        await Message.destroy({ where: { message_id: messageId }});
+                    }
+                } catch (error) {
+                    console.error('Error handling delete message:', error);
+                }
+            }
+            
+            
+            
+            
 
             if (parsedMessage.type === 'status') {
                 // Update client's availability status

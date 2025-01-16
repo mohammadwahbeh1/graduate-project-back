@@ -43,6 +43,7 @@ module.exports.register = async (req, res) => {
 
 
 
+
         const newUser = await User.create(userData);
 
         const token = generateToken(newUser);
@@ -57,6 +58,7 @@ module.exports.register = async (req, res) => {
             gender: newUser.gender,
             address: newUser.address
         };
+
 
 
         res.status(201).json({
@@ -81,11 +83,15 @@ module.exports.login = async (req, res) => {
         const user = await User.findOne({ where: { email } },
             
         );
+        console.log(user);
       
         //const hashedPassword = await bcrypt.hash(password_hash, 10);
 
         if (!user || !(await user.validPassword(password))) {
+            console.log("error: invalid password");
+
             return res.status(401).json({ status: 'error', message: 'Invalid email or password' });
+
         }
 
         const token = generateToken(user);

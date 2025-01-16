@@ -10,5 +10,6 @@ Router.route('/conversation/:userId').get(authenticate,messagesController.getMes
 
 
 Router.route('/').post(authenticate,messagesController.postMessages);
+Router.route('/:id').delete(authenticate,messagesController.deleteMessage);
 
 module.exports = Router;

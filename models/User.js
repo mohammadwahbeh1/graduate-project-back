@@ -45,6 +45,7 @@ const User = sequelize.define(
             allowNull: false, 
         },
 
+
         reset_code: {
             type: DataTypes.TEXT,
             allowNull: true,  
