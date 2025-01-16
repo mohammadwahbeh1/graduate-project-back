@@ -44,8 +44,8 @@ const DriverQue = sequelize.define(
         },
     },
     {
-        tableName: 'Driver_Que', // تحديد اسم الجدول هنا
-        timestamps: false, // إذا لم يكن لديك أعمدة createdAt و updatedAt
+        tableName: 'Driver_Que',
+        timestamps: false,
     }
 );
 
