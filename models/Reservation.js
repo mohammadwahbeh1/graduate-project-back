@@ -87,4 +87,9 @@ const Reservation = sequelize.define('Reservation', {
 
 Reservation.belongsTo(User, { foreignKey: 'user_id' });
 User.hasMany(Reservation, { foreignKey: 'user_id' });
+Reservation.belongsTo(User, { 
+    foreignKey: 'driver_id', 
+    as: 'Driver' 
+});
+
 module.exports = Reservation;

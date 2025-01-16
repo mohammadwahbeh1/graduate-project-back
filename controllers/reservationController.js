@@ -224,7 +224,15 @@ module.exports.acceptReservation = async (req, res) => {
         const { reservationId } = req.params;
         const driverId = req.user.id;
 
-        const reservation = await Reservation.findByPk(reservationId);
+        // Find reservation with associated driver information
+        const reservation = await Reservation.findByPk(reservationId, {
+            include: [{
+                model: User,
+                as: 'Driver',
+                attributes: ['username', 'phone_number']
+            }]
+        });
+
         if (!reservation) {
             return res.status(404).json({
                 status: 'error',
@@ -258,10 +266,17 @@ module.exports.acceptReservation = async (req, res) => {
         reservation.driver_id = driverId;
         await reservation.save();
 
+        // Create response with driver information
+        const responseData = {
+            ...reservation.toJSON(),
+            driver_name: driver.username,
+            driver_phone: driver.phone_number
+        };
+
         res.status(200).json({
             status: 'success',
             message: 'Reservation accepted successfully',
-            data: reservation
+            data: responseData
         });
     } catch (error) {
         res.status(500).json({
@@ -270,6 +285,7 @@ module.exports.acceptReservation = async (req, res) => {
         });
     }
 };
+
 
 module.exports.cancelReservation = async (req, res) => {
     try {
